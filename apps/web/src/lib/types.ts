@@ -52,9 +52,4 @@ export interface GameState {
     answer: string;
     isFunny: boolean;
   }>;
-  finalAwards?: {
-    bestFriend: string;
-    leastKnowledge: string;
-    mostCreative: string;
-  } | null;
 }

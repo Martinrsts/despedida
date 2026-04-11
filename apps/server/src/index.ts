@@ -157,32 +157,6 @@ const allExpectedPlayersAnswered = (room: Room): boolean => {
   );
 };
 
-const buildAwards = (
-  room: Room,
-): { bestFriend: string; leastKnowledge: string; mostCreative: string } => {
-  const ranking = leaderboard(room);
-  const bestFriend = ranking[0]?.name || "No winner";
-  const leastKnowledge = ranking[ranking.length - 1]?.name || "No player";
-
-  const answerEntries = Object.entries(room.currentRound?.answers || {});
-  const mostCreative = answerEntries
-    .map(([playerId, answer]) => ({
-      playerName: room.players[playerId]?.name || "Unknown",
-      answer,
-    }))
-    .sort(
-      (a, b) =>
-        b.answer.length - a.answer.length ||
-        a.playerName.localeCompare(b.playerName),
-    )[0]?.playerName;
-
-  return {
-    bestFriend,
-    leastKnowledge,
-    mostCreative: mostCreative || bestFriend,
-  };
-};
-
 const baseState = (room: Room) => {
   const round = room.currentRound;
   return {
@@ -219,7 +193,6 @@ const baseState = (room: Room) => {
       name: p.name,
       score: p.score,
     })),
-    finalAwards: room.phase === "finished" ? buildAwards(room) : null,
   };
 };
 
@@ -268,11 +241,9 @@ const finishGame = (room: Room): void => {
     name: p.name,
     score: p.score,
   }));
-  const awards = buildAwards(room);
 
   io.to(room.code).emit("game_finished", {
     ranking,
-    awards,
   });
   emitState(room);
 };

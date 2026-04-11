@@ -21,6 +21,7 @@ export const HostPage = () => {
   const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
   const [selectedFunnyIds, setSelectedFunnyIds] = useState<string[]>([]);
   const [revealStep, setRevealStep] = useState(0);
+  const [leaderboardRevealCount, setLeaderboardRevealCount] = useState(0);
   const previousPhaseRef = useRef<GameState["phase"] | null>(null);
 
   useEffect(() => {
@@ -33,6 +34,12 @@ export const HostPage = () => {
       }
       if (payload.phase === "reveal" && previousPhaseRef.current !== "reveal") {
         setRevealStep(0);
+      }
+      if (
+        payload.phase === "leaderboard" &&
+        previousPhaseRef.current !== "leaderboard"
+      ) {
+        setLeaderboardRevealCount(0);
       }
       previousPhaseRef.current = payload.phase;
     };
@@ -54,6 +61,18 @@ export const HostPage = () => {
       return () => clearTimeout(timer);
     }
   }, [revealStep, state]);
+
+  useEffect(() => {
+    if (!state || state.phase !== "leaderboard") return;
+
+    const total = state.leaderboard?.length || 0;
+    if (leaderboardRevealCount < total) {
+      const timer = setTimeout(() => {
+        setLeaderboardRevealCount((prev) => prev + 1);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [leaderboardRevealCount, state]);
 
   const joinAsHost = (code?: string) => {
     socket.emit(
@@ -154,6 +173,7 @@ export const HostPage = () => {
   const visibleRevealCount = Math.ceil(revealStep / 2);
   const statusRevealCount = Math.floor(revealStep / 2);
   const maxRevealSteps = revealAnswers.length * 2;
+  const leaderboardEntries = state?.leaderboard || [];
 
   return (
     <div className="page host-page">
@@ -386,7 +406,13 @@ export const HostPage = () => {
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
-                        className={`reveal-item big-reveal ${entry.isCorrect ? "correct" : "incorrect"}`}
+                        className={`reveal-item big-reveal ${
+                          idx < statusRevealCount
+                            ? entry.isCorrect
+                              ? "correct"
+                              : "incorrect"
+                            : "pending"
+                        }`}
                         style={{
                           animationDelay: `${idx * 0.1}s`,
                         }}
@@ -419,15 +445,36 @@ export const HostPage = () => {
             {state.phase === "leaderboard" && (
               <div className="stack">
                 <h2>Leaderboard</h2>
-                <ol>
-                  {(state.leaderboard || []).map((entry) => (
-                    <li key={entry.id}>
-                      {entry.name}: {entry.score}
-                    </li>
-                  ))}
+                <ol className="leaderboard-grid">
+                  {leaderboardEntries
+                    .slice(0, leaderboardRevealCount)
+                    .map((entry, idx) => (
+                      <li
+                        key={entry.id}
+                        className={`leaderboard-card ${
+                          idx === 0
+                            ? "place-1"
+                            : idx === 1
+                              ? "place-2"
+                              : idx === 2
+                                ? "place-3"
+                                : ""
+                        }`}
+                      >
+                        <div className="leaderboard-main">
+                          <span className="leaderboard-rank">#{idx + 1}</span>
+                          <span className="leaderboard-name">{entry.name}</span>
+                        </div>
+                        <span className="leaderboard-score">
+                          {entry.score} pts
+                        </span>
+                      </li>
+                    ))}
                 </ol>
                 <button className="btn" onClick={continueFlow}>
-                  Next step
+                  {leaderboardRevealCount < leaderboardEntries.length
+                    ? `Revealing ${leaderboardRevealCount}/${leaderboardEntries.length}...`
+                    : "Next step"}
                 </button>
               </div>
             )}
@@ -442,18 +489,6 @@ export const HostPage = () => {
                     </li>
                   ))}
                 </ol>
-                {state.finalAwards && (
-                  <div>
-                    <p>Best friend: {state.finalAwards.bestFriend}</p>
-                    <p>
-                      Does not know the groom:{" "}
-                      {state.finalAwards.leastKnowledge}
-                    </p>
-                    <p>
-                      Most creative answer: {state.finalAwards.mostCreative}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </>

@@ -11,6 +11,7 @@ export const DisplayPage = () => {
   const [error, setError] = useState("");
   const [secondsLeft, setSecondsLeft] = useState<number>(25);
   const [revealStep, setRevealStep] = useState(0);
+  const [leaderboardRevealCount, setLeaderboardRevealCount] = useState(0);
   const previousPhaseRef = useRef<GameState["phase"] | null>(null);
 
   useEffect(() => {
@@ -18,6 +19,12 @@ export const DisplayPage = () => {
       setState(payload);
       if (payload.phase === "reveal" && previousPhaseRef.current !== "reveal") {
         setRevealStep(0);
+      }
+      if (
+        payload.phase === "leaderboard" &&
+        previousPhaseRef.current !== "leaderboard"
+      ) {
+        setLeaderboardRevealCount(0);
       }
       previousPhaseRef.current = payload.phase;
     };
@@ -39,6 +46,18 @@ export const DisplayPage = () => {
       return () => clearTimeout(timer);
     }
   }, [revealStep, state]);
+
+  useEffect(() => {
+    if (!state || state.phase !== "leaderboard") return;
+
+    const total = state.leaderboard?.length || 0;
+    if (leaderboardRevealCount < total) {
+      const timer = setTimeout(() => {
+        setLeaderboardRevealCount((prev) => prev + 1);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [leaderboardRevealCount, state]);
 
   useEffect(() => {
     if (!state?.timerEndsAt || state.phase !== "answering") {
@@ -78,6 +97,10 @@ export const DisplayPage = () => {
   const revealAnswers = state?.revealedAnswers || [];
   const visibleRevealCount = Math.ceil(revealStep / 2);
   const statusRevealCount = Math.floor(revealStep / 2);
+  const leaderboardEntries = state?.leaderboard || [];
+  const latestStatusEntry =
+    statusRevealCount > 0 ? revealAnswers[statusRevealCount - 1] : undefined;
+  const showFunnyScreenBurst = Boolean(latestStatusEntry?.isFunny);
 
   return (
     <div className="page display-page">
@@ -158,6 +181,24 @@ export const DisplayPage = () => {
 
             {state.phase === "reveal" && (
               <>
+                {showFunnyScreenBurst && (
+                  <div
+                    className="funny-screen-burst"
+                    key={`funny-burst-${statusRevealCount}`}
+                    aria-hidden="true"
+                  >
+                    <span className="funny-screen-confetti f1" />
+                    <span className="funny-screen-confetti f2" />
+                    <span className="funny-screen-confetti f3" />
+                    <span className="funny-screen-confetti f4" />
+                    <span className="funny-screen-confetti f5" />
+                    <span className="funny-screen-confetti f6" />
+                    <span className="funny-screen-emoji e1">😂</span>
+                    <span className="funny-screen-emoji e2">🤣</span>
+                    <span className="funny-screen-emoji e3">😆</span>
+                    <span className="funny-screen-emoji e4">😂</span>
+                  </div>
+                )}
                 <h2>Who wrote what?</h2>
                 <ul className="big-list reveal-list">
                   {revealAnswers
@@ -165,7 +206,13 @@ export const DisplayPage = () => {
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
-                        className={`reveal-item big-reveal ${entry.isCorrect ? "correct" : "incorrect"}`}
+                        className={`reveal-item big-reveal ${
+                          idx < statusRevealCount
+                            ? entry.isCorrect
+                              ? "correct"
+                              : "incorrect"
+                            : "pending"
+                        }`}
                         style={{
                           animationDelay: `${idx * 0.1}s`,
                         }}
@@ -180,17 +227,6 @@ export const DisplayPage = () => {
                             {entry.isCorrect ? "✓ CORRECT" : "✗ INCORRECT"}
                           </span>
                         )}
-                        {idx < statusRevealCount && entry.isFunny && (
-                          <div className="funny-burst" aria-hidden="true">
-                            <span className="funny-confetti c1" />
-                            <span className="funny-confetti c2" />
-                            <span className="funny-confetti c3" />
-                            <span className="funny-confetti c4" />
-                            <span className="funny-emoji e1">😂</span>
-                            <span className="funny-emoji e2">🤣</span>
-                            <span className="funny-emoji e3">😆</span>
-                          </div>
-                        )}
                       </li>
                     ))}
                 </ul>
@@ -200,12 +236,31 @@ export const DisplayPage = () => {
             {state.phase === "leaderboard" && (
               <>
                 <h2>Leaderboard</h2>
-                <ol className="big-list">
-                  {(state.leaderboard || []).map((entry) => (
-                    <li key={entry.id}>
-                      {entry.name} - {entry.score}
-                    </li>
-                  ))}
+                <ol className="leaderboard-grid leaderboard-grid-display">
+                  {leaderboardEntries
+                    .slice(0, leaderboardRevealCount)
+                    .map((entry, idx) => (
+                      <li
+                        key={entry.id}
+                        className={`leaderboard-card ${
+                          idx === 0
+                            ? "place-1"
+                            : idx === 1
+                              ? "place-2"
+                              : idx === 2
+                                ? "place-3"
+                                : ""
+                        }`}
+                      >
+                        <div className="leaderboard-main">
+                          <span className="leaderboard-rank">#{idx + 1}</span>
+                          <span className="leaderboard-name">{entry.name}</span>
+                        </div>
+                        <span className="leaderboard-score">
+                          {entry.score} pts
+                        </span>
+                      </li>
+                    ))}
                 </ol>
               </>
             )}
@@ -220,20 +275,6 @@ export const DisplayPage = () => {
                     </li>
                   ))}
                 </ol>
-
-                {state.finalAwards && (
-                  <div className="awards">
-                    <h3>Fun Awards</h3>
-                    <p>Best friend: {state.finalAwards.bestFriend}</p>
-                    <p>
-                      Does not know the groom:{" "}
-                      {state.finalAwards.leastKnowledge}
-                    </p>
-                    <p>
-                      Most creative answer: {state.finalAwards.mostCreative}
-                    </p>
-                  </div>
-                )}
               </>
             )}
           </div>
