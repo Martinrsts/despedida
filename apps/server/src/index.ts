@@ -67,6 +67,9 @@ const PHASE_LABEL: Record<Phase, string> = {
 };
 
 const FUNNY_ANSWER_BONUS = 50;
+const DEFAULT_TOTAL_ROUNDS = 8;
+const MIN_TOTAL_ROUNDS = 1;
+const MAX_TOTAL_ROUNDS = 20;
 
 const clampText = (value: string, max = 140): string =>
   value.trim().slice(0, max);
@@ -83,15 +86,22 @@ const generateRoomCode = (): string => {
   return code;
 };
 
-const createRoom = (hostSocketId: string): Room => {
+const sanitizeTotalRounds = (value?: number): number => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return DEFAULT_TOTAL_ROUNDS;
+  }
+  const rounded = Math.round(value);
+  return Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, rounded));
+};
+
+const createRoom = (totalRounds?: number): Room => {
   const room: Room = {
     code: generateRoomCode(),
-    hostSocketId,
     displaySocketIds: new Set(),
     players: {},
     phase: "lobby",
     roundNumber: 0,
-    totalRounds: 8,
+    totalRounds: sanitizeTotalRounds(totalRounds),
     customQuestions: [],
     usedQuestionIds: new Set(),
   };
@@ -353,8 +363,8 @@ io.on("connection", (socket) => {
       const role = payload.role;
       let room: Room | undefined;
 
-      if (role === "host" && !payload.roomCode) {
-        room = createRoom(socket.id);
+      if ((role === "host" || role === "display") && !payload.roomCode) {
+        room = createRoom(payload.totalRounds);
       } else if (payload.roomCode) {
         room = rooms.get(payload.roomCode.toUpperCase());
       }

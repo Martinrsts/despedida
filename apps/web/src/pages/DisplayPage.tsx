@@ -1,15 +1,26 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CSSProperties,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { GameState } from "../lib/types";
 import { getCategoryEmoji } from "../lib/categoryEmoji";
+
+const DEFAULT_TOTAL_ROUNDS = 8;
+const ANSWER_DURATION_MS = 25000;
 
 export const DisplayPage = () => {
   const socket = useMemo(() => getSocket(), []);
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [state, setState] = useState<GameState | null>(null);
   const [error, setError] = useState("");
-  const [secondsLeft, setSecondsLeft] = useState<number>(25);
+  const [totalRounds, setTotalRounds] = useState<number>(DEFAULT_TOTAL_ROUNDS);
+  const [timerProgress, setTimerProgress] = useState<number>(1);
   const [revealStep, setRevealStep] = useState(0);
   const [leaderboardRevealCount, setLeaderboardRevealCount] = useState(0);
   const previousPhaseRef = useRef<GameState["phase"] | null>(null);
@@ -61,28 +72,30 @@ export const DisplayPage = () => {
 
   useEffect(() => {
     if (!state?.timerEndsAt || state.phase !== "answering") {
-      setSecondsLeft(25);
+      setTimerProgress(1);
       return;
     }
 
     const id = window.setInterval(() => {
-      const left = Math.max(
-        0,
-        Math.ceil((state.timerEndsAt! - Date.now()) / 1000),
-      );
-      setSecondsLeft(left);
-    }, 250);
+      const remainingMs = Math.max(0, state.timerEndsAt! - Date.now());
+      setTimerProgress(Math.min(1, remainingMs / ANSWER_DURATION_MS));
+    }, 100);
 
     return () => window.clearInterval(id);
   }, [state?.timerEndsAt, state?.phase]);
 
-  const joinDisplay = (event: FormEvent) => {
-    event.preventDefault();
+  const timerStyle = {
+    "--progress": timerProgress,
+  } as CSSProperties;
+
+  const joinDisplay = (roomCode?: string) => {
+    const normalizedCode = roomCode?.trim().toUpperCase();
     socket.emit(
       "join_room",
       {
         role: "display",
-        roomCode: roomCodeInput.toUpperCase(),
+        roomCode: normalizedCode || undefined,
+        totalRounds: normalizedCode ? undefined : totalRounds,
       },
       (ack: { ok: boolean; error?: string }) => {
         if (!ack.ok) {
@@ -116,8 +129,35 @@ export const DisplayPage = () => {
         </div>
 
         {!state && (
-          <form className="stack" onSubmit={joinDisplay}>
+          <form
+            className="stack"
+            onSubmit={(event: FormEvent) => {
+              event.preventDefault();
+              joinDisplay(roomCodeInput);
+            }}
+          >
             <h1>Display screen</h1>
+            <div className="inline-input">
+              <select
+                value={totalRounds}
+                onChange={(e) => setTotalRounds(Number(e.target.value))}
+              >
+                {Array.from({ length: 20 }, (_, idx) => idx + 1).map(
+                  (rounds) => (
+                    <option key={rounds} value={rounds}>
+                      {rounds} round{rounds === 1 ? "" : "s"}
+                    </option>
+                  ),
+                )}
+              </select>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => joinDisplay()}
+              >
+                Create room
+              </button>
+            </div>
             <input
               placeholder="Room code"
               value={roomCodeInput}
@@ -161,7 +201,16 @@ export const DisplayPage = () => {
                   {state.question && getCategoryEmoji(state.question.category)}{" "}
                   {state.question?.text}
                 </h2>
-                <p className="timer large">{secondsLeft}s</p>
+                <div
+                  className="timer-clock large"
+                  style={timerStyle}
+                  role="img"
+                  aria-label="Remaining time"
+                >
+                  <span className="timer-icon" aria-hidden="true">
+                    ⏱️
+                  </span>
+                </div>
               </>
             )}
 

@@ -1,7 +1,9 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { CSSProperties, FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { GameState } from "../lib/types";
+
+const ANSWER_DURATION_MS = 25000;
 
 export const PlayerPage = () => {
   const socket = useMemo(() => getSocket(), []);
@@ -11,7 +13,7 @@ export const PlayerPage = () => {
   const [error, setError] = useState("");
   const [answer, setAnswer] = useState("");
   const [state, setState] = useState<GameState | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState<number>(25);
+  const [timerProgress, setTimerProgress] = useState<number>(1);
 
   useEffect(() => {
     const onState = (payload: GameState) => {
@@ -27,20 +29,21 @@ export const PlayerPage = () => {
 
   useEffect(() => {
     if (!state?.timerEndsAt || state.phase !== "answering") {
-      setSecondsLeft(25);
+      setTimerProgress(1);
       return;
     }
 
     const id = window.setInterval(() => {
-      const left = Math.max(
-        0,
-        Math.ceil((state.timerEndsAt! - Date.now()) / 1000),
-      );
-      setSecondsLeft(left);
-    }, 250);
+      const remainingMs = Math.max(0, state.timerEndsAt! - Date.now());
+      setTimerProgress(Math.min(1, remainingMs / ANSWER_DURATION_MS));
+    }, 100);
 
     return () => window.clearInterval(id);
   }, [state?.timerEndsAt, state?.phase]);
+
+  const timerStyle = {
+    "--progress": timerProgress,
+  } as CSSProperties;
 
   const joinRoom = (event: FormEvent) => {
     event.preventDefault();
@@ -137,7 +140,16 @@ export const PlayerPage = () => {
             {state.phase === "answering" && (
               <form className="stack" onSubmit={submitAnswer}>
                 <h2>{state.question?.text}</h2>
-                <p className="timer">{secondsLeft}s</p>
+                <div
+                  className="timer-clock"
+                  style={timerStyle}
+                  role="img"
+                  aria-label="Remaining time"
+                >
+                  <span className="timer-icon" aria-hidden="true">
+                    ⏱️
+                  </span>
+                </div>
                 <textarea
                   placeholder="Type your answer"
                   value={answer}

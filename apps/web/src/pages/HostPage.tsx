@@ -5,6 +5,7 @@ import { Category, GameState } from "../lib/types";
 import { getCategoryEmoji } from "../lib/categoryEmoji";
 
 const initialCustomCategory: Category = "fun";
+const DEFAULT_TOTAL_ROUNDS = 8;
 
 export const HostPage = () => {
   const socket = useMemo(() => getSocket(), []);
@@ -17,6 +18,7 @@ export const HostPage = () => {
   const [customCategory, setCustomCategory] = useState<Category>(
     initialCustomCategory,
   );
+  const [totalRounds, setTotalRounds] = useState<number>(DEFAULT_TOTAL_ROUNDS);
 
   const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
   const [selectedFunnyIds, setSelectedFunnyIds] = useState<string[]>([]);
@@ -77,11 +79,13 @@ export const HostPage = () => {
   }, [leaderboardRevealCount, state]);
 
   const joinAsHost = (code?: string) => {
+    const normalizedCode = code?.trim().toUpperCase();
     socket.emit(
       "join_room",
       {
         role: "host",
-        roomCode: code || undefined,
+        roomCode: normalizedCode || undefined,
+        totalRounds: normalizedCode ? undefined : totalRounds,
       },
       (ack: { ok: boolean; error?: string; roomCode?: string }) => {
         if (!ack.ok) {
@@ -201,9 +205,23 @@ export const HostPage = () => {
 
         {!roomCode && (
           <div className="stack">
-            <button className="btn" onClick={() => joinAsHost()}>
-              Create Room
-            </button>
+            <div className="inline-input">
+              <select
+                value={totalRounds}
+                onChange={(e) => setTotalRounds(Number(e.target.value))}
+              >
+                {Array.from({ length: 20 }, (_, idx) => idx + 1).map(
+                  (rounds) => (
+                    <option key={rounds} value={rounds}>
+                      {rounds} round{rounds === 1 ? "" : "s"}
+                    </option>
+                  ),
+                )}
+              </select>
+              <button className="btn" onClick={() => joinAsHost()}>
+                Create Room
+              </button>
+            </div>
 
             <div className="inline-input">
               <input

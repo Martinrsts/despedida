@@ -57,6 +57,7 @@ export interface Room {
 export interface JoinRoomPayload {
   role: Role;
   roomCode?: string;
+  totalRounds?: number;
   name?: string;
   playerToken?: string;
 }
