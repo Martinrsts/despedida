@@ -100,7 +100,7 @@ export const PlayerPage = () => {
         <div className="top-nav">
           <Link to="/">Back</Link>
         </div>
-        <h1>Player</h1>
+        <h1>Jugador</h1>
 
         {!state && (
           <form className="stack" onSubmit={joinRoom}>
@@ -119,7 +119,7 @@ export const PlayerPage = () => {
               required
             />
             <button className="btn" type="submit">
-              Join room
+              Unirse a la partida
             </button>
           </form>
         )}
@@ -130,11 +130,11 @@ export const PlayerPage = () => {
           <>
             <p className="badge">Room: {state.roomCode}</p>
             <p>
-              Round {state.roundNumber}/{state.totalRounds}
+              Ronda {state.roundNumber}/{state.totalRounds}
             </p>
 
             {(state.phase === "lobby" || state.phase === "host_pick") && (
-              <p>Waiting for host to start the next question...</p>
+              <p>Esperando a que el anfitrión inicie la próxima pregunta...</p>
             )}
 
             {state.phase === "answering" && (
@@ -173,7 +173,7 @@ export const PlayerPage = () => {
               state.phase === "reveal" ||
               state.phase === "leaderboard") && (
               <div className="stack">
-                <p>Waiting for results...</p>
+                <p>Esperando resultados...</p>
                 <div
                   className="display-loading-cue"
                   role="status"
@@ -183,7 +183,7 @@ export const PlayerPage = () => {
                     🖥️
                   </span>
                   <span className="display-loading-text">
-                    Check the display screen
+                    Revisa la pantalla para ver los resultados
                     <span className="loading-dots" aria-hidden="true">
                       <span>.</span>
                       <span>.</span>
@@ -191,14 +191,14 @@ export const PlayerPage = () => {
                     </span>
                   </span>
                 </div>
-                <p>Your score: {state.yourScore || 0}</p>
+                <p>Tu puntaje: {state.yourScore || 0}</p>
               </div>
             )}
 
             {state.phase === "finished" && (
               <div className="stack">
-                <h2>Game finished</h2>
-                <p>Final score: {state.yourScore || 0}</p>
+                <h2>Se acabo el juego</h2>
+                <p>Puntaje final: {state.yourScore || 0}</p>
               </div>
             )}
           </>

@@ -9,17 +9,17 @@ import "./styles.css";
 const Home = () => (
   <div className="page home-page">
     <div className="card home-card">
-      <h1>Know The Groom</h1>
-      <p>Choose your role to join the game room.</p>
+      <h1>Despedida de Diego</h1>
+      <p>Elige tu rol para unirte a la sala de juego.</p>
       <div className="actions">
         <Link className="btn" to="/host">
-          Host
+          Anfitrión (Diego)
         </Link>
         <Link className="btn" to="/player">
-          Player
+          Jugador
         </Link>
         <Link className="btn" to="/display">
-          Display
+          Pantalla compartida
         </Link>
       </div>
     </div>

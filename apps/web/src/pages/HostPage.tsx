@@ -198,10 +198,10 @@ export const HostPage = () => {
     <div className="page host-page">
       <div className="card host-card">
         <div className="top-nav">
-          <Link to="/">Back</Link>
+          <Link to="/">Atrás</Link>
         </div>
 
-        <h1>Host Panel</h1>
+        <h1>Panel del Anfitrión</h1>
 
         {!roomCode && (
           <div className="stack">
@@ -213,43 +213,43 @@ export const HostPage = () => {
                 {Array.from({ length: 20 }, (_, idx) => idx + 1).map(
                   (rounds) => (
                     <option key={rounds} value={rounds}>
-                      {rounds} round{rounds === 1 ? "" : "s"}
+                      {rounds} ronda{rounds === 1 ? "" : "s"}
                     </option>
                   ),
                 )}
               </select>
               <button className="btn" onClick={() => joinAsHost()}>
-                Create Room
+                Crear nueva sala
               </button>
             </div>
 
             <div className="inline-input">
               <input
-                placeholder="Join existing room"
+                placeholder="Unirse a sala existente"
                 value={roomCodeInput}
                 onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
               />
               <button className="btn" onClick={() => joinAsHost(roomCodeInput)}>
-                Join
+                Unirse
               </button>
             </div>
           </div>
         )}
 
-        {roomCode && <p className="badge">Room code: {roomCode}</p>}
+        {roomCode && <p className="badge">Código de sala: {roomCode}</p>}
 
         {error && <p className="error">{error}</p>}
 
         {state && (
           <>
             <p>
-              Round {state.roundNumber}/{state.totalRounds} - {state.phaseLabel}
+              Ronda {state.roundNumber}/{state.totalRounds} - {state.phaseLabel}
             </p>
 
             {state.phase === "lobby" && (
               <div className="stack">
-                <h2>Lobby</h2>
-                <p>Players connected: {state.playerCount}</p>
+                <h2>Sala de espera</h2>
+                <p>Jugadores conectados: {state.playerCount}</p>
                 <ul>
                   {state.players.map((player) => (
                     <li key={player.id}>
@@ -263,14 +263,14 @@ export const HostPage = () => {
                   onClick={startGame}
                   disabled={state.playerCount === 0}
                 >
-                  Start game
+                  Empezar el juego
                 </button>
               </div>
             )}
 
             {state.phase === "host_pick" && (
               <div className="stack">
-                <h2>Select one question</h2>
+                <h2>Seleccionar una pregunta</h2>
                 {state.questionOptions.map((question) => (
                   <button
                     className="btn ghost"
@@ -281,11 +281,7 @@ export const HostPage = () => {
                   </button>
                 ))}
                 <div className="section">
-                  <h3>Add a custom question for this round</h3>
-                  <p>
-                    It will be added below the current options and will not be
-                    auto-selected.
-                  </p>
+                  <h3>Agregar una pregunta personalizada para esta ronda</h3>
                   <form className="stack" onSubmit={submitCustomQuestion}>
                     <textarea
                       value={customQuestionText}
@@ -304,7 +300,7 @@ export const HostPage = () => {
                       <option value="spicy">🌶️ spicy</option>
                     </select>
                     <button className="btn" type="submit">
-                      Add custom question
+                      Agregar pregunta a la lista
                     </button>
                   </form>
                 </div>
@@ -313,15 +309,17 @@ export const HostPage = () => {
 
             {state.phase === "answering" && (
               <div className="stack">
-                <h2>Players are answering...</h2>
+                <h2>Jugadores respondiendo...</h2>
                 <p>{state.question?.text}</p>
               </div>
             )}
 
             {state.phase === "anon_answers" && (
               <div className="stack">
-                <h2>Anonymous answers</h2>
-                <p>Review all responses before choosing the correct ones.</p>
+                <h2>Respuestas anónimas</h2>
+                <p>
+                  Revisa todas las respuestas antes de elegir las correctas.
+                </p>
                 <div className="anon-grid">
                   {state.anonymousAnswers.map((answer, idx) => (
                     <div className="anon-card" key={`${answer}-${idx}`}>
@@ -330,17 +328,19 @@ export const HostPage = () => {
                   ))}
                 </div>
                 <button className="btn" onClick={continueFlow}>
-                  Judge answers
+                  Juzgar respuestas
                 </button>
               </div>
             )}
 
             {state.phase === "host_judging" && (
               <div className="stack">
-                <h2>Select correct answers</h2>
+                <h2>Seleccionar respuestas correctas</h2>
                 <p style={{ margin: "0 0 16px 0", color: "#666" }}>
-                  Tap each answer to mark it as correct, or press 😂 for a
-                  funny-answer bonus, or 🍺 to make that player pay a beer.{" "}
+                  Toca en cada respuesta para marcarla como correcta, o presiona
+                  😂 para un bonus de respuesta divertida, o 🍺 para hacer que
+                  ese jugador pague una cerveza (Al menos una persona debe
+                  tomar).{" "}
                   {(selectedCorrectIds.length > 0 ||
                     selectedFunnyIds.length > 0 ||
                     selectedBeerIds.length > 0) &&
@@ -406,7 +406,7 @@ export const HostPage = () => {
 
             {state.phase === "reveal" && (
               <div className="stack">
-                <h2>Reveal</h2>
+                <h2>Revelar</h2>
                 <ul className="reveal-list">
                   {revealAnswers
                     .slice(0, visibleRevealCount)
@@ -451,7 +451,7 @@ export const HostPage = () => {
 
             {state.phase === "leaderboard" && (
               <div className="stack">
-                <h2>Leaderboard</h2>
+                <h2>Tabla de clasificación</h2>
                 <ol className="leaderboard-grid">
                   {leaderboardEntries.map((entry, idx) => {
                     const revealed = idx >= leaderboardRevealStartIndex;
@@ -490,7 +490,7 @@ export const HostPage = () => {
 
             {state.phase === "finished" && (
               <div className="stack">
-                <h2>Final results</h2>
+                <h2>Resultados finales</h2>
                 <ol>
                   {(state.leaderboard || []).map((entry) => (
                     <li key={entry.id}>

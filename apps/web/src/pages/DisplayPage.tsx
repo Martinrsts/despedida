@@ -153,7 +153,7 @@ export const DisplayPage = () => {
     <div className="page display-page">
       <div className="card display-card">
         <div className="top-nav">
-          <Link to="/">Back</Link>
+          <Link to="/">Atrás</Link>
         </div>
 
         {!state && (
@@ -164,7 +164,7 @@ export const DisplayPage = () => {
               joinDisplay(roomCodeInput);
             }}
           >
-            <h1>Display screen</h1>
+            <h1>Presentación</h1>
             <div className="inline-input">
               <select
                 value={totalRounds}
@@ -173,7 +173,7 @@ export const DisplayPage = () => {
                 {Array.from({ length: 20 }, (_, idx) => idx + 1).map(
                   (rounds) => (
                     <option key={rounds} value={rounds}>
-                      {rounds} round{rounds === 1 ? "" : "s"}
+                      {rounds} ronda{rounds === 1 ? "" : "s"}
                     </option>
                   ),
                 )}
@@ -183,7 +183,7 @@ export const DisplayPage = () => {
                 type="button"
                 onClick={() => joinDisplay()}
               >
-                Create room
+                Crear nueva sala
               </button>
             </div>
             <input
@@ -194,7 +194,7 @@ export const DisplayPage = () => {
               required
             />
             <button className="btn" type="submit">
-              Join room
+              Unirse a la sala
             </button>
             {error && <p className="error">{error}</p>}
           </form>
@@ -205,16 +205,16 @@ export const DisplayPage = () => {
             <p
               className={`badge ${state.phase === "lobby" ? "display-lobby-code" : ""}`}
             >
-              Room {state.roomCode}
+              Sala {state.roomCode}
             </p>
             <h1>
-              Round {state.roundNumber}/{state.totalRounds}
+              Ronda {state.roundNumber}/{state.totalRounds}
             </h1>
 
             {state.phase === "lobby" && (
               <>
-                <h2>Waiting for host to start</h2>
-                <h3>Players</h3>
+                <h2>Esperando a que el anfitrión inicie</h2>
+                <h3>Jugadores</h3>
                 <ul className="big-list">
                   {state.players.map((player) => (
                     <li key={player.id}>{player.name}</li>
@@ -224,7 +224,7 @@ export const DisplayPage = () => {
             )}
 
             {state.phase === "host_pick" && (
-              <h2>Host is choosing question...</h2>
+              <h2>Anfitrión está eligiendo la pregunta...</h2>
             )}
 
             {state.phase === "answering" && (
@@ -248,7 +248,7 @@ export const DisplayPage = () => {
 
             {state.phase === "anon_answers" && (
               <>
-                <h2>Anonymous answers</h2>
+                <h2>Respuestas</h2>
                 <div className="anon-grid anon-grid-display">
                   {state.anonymousAnswers.map((answer, idx) => (
                     <div
@@ -263,7 +263,7 @@ export const DisplayPage = () => {
             )}
 
             {state.phase === "host_judging" && (
-              <h2>Host is selecting correct answers...</h2>
+              <h2>Anfitrión está seleccionando las respuestas correctas...</h2>
             )}
 
             {state.phase === "reveal" && (
@@ -328,7 +328,7 @@ export const DisplayPage = () => {
                     </div>
                   </div>
                 )}
-                <h2>Who wrote what?</h2>
+                <h2>Evaluación de las respuestas</h2>
                 <ul className="big-list reveal-list">
                   {revealAnswers
                     .slice(0, visibleRevealCount)
@@ -364,7 +364,7 @@ export const DisplayPage = () => {
 
             {state.phase === "leaderboard" && (
               <>
-                <h2>Leaderboard</h2>
+                <h2>Clasificación</h2>
                 <ol className="leaderboard-grid leaderboard-grid-display">
                   {leaderboardEntries.map((entry, idx) => {
                     const revealed = idx >= leaderboardRevealStartIndex;
@@ -416,10 +416,10 @@ export const DisplayPage = () => {
                     </div>
                   )}
 
-                  <h2 className="ceremony-title">Grand Final Podium</h2>
+                  <h2 className="ceremony-title">Ceremonia Final</h2>
 
                   <div className="final-non-podium">
-                    <h3>Great game to everyone else</h3>
+                    <h3>GG, bien jugado, pero perdieron</h3>
                     {nonPodiumEntries.length > 0 ? (
                       <ol className="non-podium-list">
                         {nonPodiumEntries.map((entry, idx) => (
@@ -436,7 +436,7 @@ export const DisplayPage = () => {
                       </ol>
                     ) : (
                       <p className="non-podium-empty">
-                        Only podium players this round.
+                        Solo hubieron ganadores.
                       </p>
                     )}
                   </div>
