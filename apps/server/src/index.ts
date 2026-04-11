@@ -323,12 +323,12 @@ const applyScores = (room: Room): void => {
   if (!room.currentRound) return;
   const correctIds = room.currentRound.selectedCorrectPlayerIds;
   const ratio = correctIds.length / activePlayerCount(room);
-  const bonus = ratio < 0.3 ? 1 : 0;
+  const bonus = ratio < 0.3 ? 100 : 0;
 
   correctIds.forEach((playerId) => {
     const player = room.players[playerId];
     if (!player) return;
-    player.score += 1 + bonus;
+    player.score += 100 + bonus;
   });
 
   io.to(room.code).emit("update_scores", {
@@ -336,7 +336,7 @@ const applyScores = (room: Room): void => {
       name: p.name,
       score: p.score,
     })),
-    bonusApplied: bonus === 1,
+    bonusApplied: bonus === 100,
   });
 };
 

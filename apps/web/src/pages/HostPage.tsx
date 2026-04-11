@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { Category, GameState } from "../lib/types";
+import { getCategoryEmoji } from "../lib/categoryEmoji";
 
 const initialCustomCategory: Category = "fun";
 
@@ -18,6 +19,7 @@ export const HostPage = () => {
   );
 
   const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
+  const [revealedCount, setRevealedCount] = useState(0);
 
   useEffect(() => {
     const onState = (payload: GameState) => {
@@ -26,6 +28,9 @@ export const HostPage = () => {
       if (payload.phase !== "host_judging") {
         setSelectedCorrectIds([]);
       }
+      if (payload.phase === "reveal") {
+        setRevealedCount(0);
+      }
     };
 
     socket.on("state_sync", onState);
@@ -33,6 +38,18 @@ export const HostPage = () => {
       socket.off("state_sync", onState);
     };
   }, [socket]);
+
+  useEffect(() => {
+    if (
+      state?.phase === "reveal" &&
+      revealedCount < (state.revealedAnswers?.length || 0)
+    ) {
+      const timer = setTimeout(() => {
+        setRevealedCount((prev) => prev + 1);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [revealedCount, state?.phase, state?.revealedAnswers?.length]);
 
   const joinAsHost = (code?: string) => {
     socket.emit(
@@ -186,9 +203,9 @@ export const HostPage = () => {
                         setCustomCategory(e.target.value as Category)
                       }
                     >
-                      <option value="safe">safe</option>
-                      <option value="fun">fun</option>
-                      <option value="spicy">spicy</option>
+                      <option value="safe">🟢 safe</option>
+                      <option value="fun">😄 fun</option>
+                      <option value="spicy">🌶️ spicy</option>
                     </select>
                     <button className="btn" type="submit">
                       Add custom question
@@ -215,7 +232,7 @@ export const HostPage = () => {
                     key={question.id}
                     onClick={() => selectQuestion(question.id)}
                   >
-                    [{question.category}] {question.text}
+                    {getCategoryEmoji(question.category)} {question.text}
                   </button>
                 ))}
               </div>
@@ -244,19 +261,41 @@ export const HostPage = () => {
 
             {state.phase === "host_judging" && (
               <div className="stack">
-                <h2>Select correct answers</h2>
-                {(state.judgingAnswers || []).map((entry) => (
-                  <label className="check" key={entry.playerId}>
-                    <input
-                      type="checkbox"
-                      checked={selectedCorrectIds.includes(entry.playerId)}
-                      onChange={() => toggleCorrect(entry.playerId)}
-                    />
-                    <span>{entry.answer}</span>
-                  </label>
-                ))}
-                <button className="btn" onClick={confirmCorrect}>
-                  Confirm selections
+                <div className="judging-header">
+                  <h2>Select correct answers</h2>
+                  <span className="selection-counter">
+                    {selectedCorrectIds.length} selected
+                  </span>
+                </div>
+                <p style={{ margin: "0 0 16px 0", color: "#666" }}>
+                  Tap each answer to mark it as correct.{" "}
+                  {selectedCorrectIds.length > 0 && "Click confirm when ready."}
+                </p>
+                <div className="answers-container">
+                  {(state.judgingAnswers || []).map((entry) => (
+                    <div
+                      key={entry.playerId}
+                      className={`answer-card ${
+                        selectedCorrectIds.includes(entry.playerId)
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() => toggleCorrect(entry.playerId)}
+                    >
+                      <div className="answer-checkbox">
+                        {selectedCorrectIds.includes(entry.playerId) && "✓"}
+                      </div>
+                      <span className="answer-text">{entry.answer}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  className="btn"
+                  onClick={confirmCorrect}
+                  disabled={selectedCorrectIds.length === 0}
+                >
+                  Confirm {selectedCorrectIds.length} correct answer
+                  {selectedCorrectIds.length !== 1 ? "s" : ""}
                 </button>
               </div>
             )}
@@ -264,16 +303,38 @@ export const HostPage = () => {
             {state.phase === "reveal" && (
               <div className="stack">
                 <h2>Reveal</h2>
-                <ul>
-                  {state.revealedAnswers.map((entry) => (
-                    <li key={entry.playerId}>
-                      {entry.playerName}: {entry.answer}{" "}
-                      {entry.isCorrect ? "(correct)" : ""}
-                    </li>
-                  ))}
+                <ul className="reveal-list">
+                  {(state.revealedAnswers || [])
+                    .slice(0, revealedCount)
+                    .map((entry, idx) => (
+                      <li
+                        key={entry.playerId}
+                        className="reveal-item"
+                        style={{
+                          animationDelay: `${idx * 0.1}s`,
+                        }}
+                      >
+                        <span className="reveal-answer">
+                          {entry.playerName}: {entry.answer}
+                        </span>
+                        <span
+                          className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
+                        >
+                          {entry.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                        </span>
+                      </li>
+                    ))}
                 </ul>
-                <button className="btn" onClick={continueFlow}>
-                  Show leaderboard
+                <button
+                  className="btn"
+                  onClick={continueFlow}
+                  disabled={
+                    revealedCount < (state.revealedAnswers?.length || 0)
+                  }
+                >
+                  {revealedCount < (state.revealedAnswers?.length || 0)
+                    ? `Showing ${revealedCount}/${state.revealedAnswers?.length}...`
+                    : "Show leaderboard"}
                 </button>
               </div>
             )}

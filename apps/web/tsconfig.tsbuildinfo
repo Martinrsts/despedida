@@ -1,1 +1,1 @@
-{"root":["./src/main.tsx","./src/lib/socket.ts","./src/lib/types.ts","./src/pages/DisplayPage.tsx","./src/pages/HostPage.tsx","./src/pages/PlayerPage.tsx"],"version":"5.9.3"}
+{"root":["./src/main.tsx","./src/lib/categoryEmoji.ts","./src/lib/socket.ts","./src/lib/types.ts","./src/pages/DisplayPage.tsx","./src/pages/HostPage.tsx","./src/pages/PlayerPage.tsx"],"version":"5.9.3"}

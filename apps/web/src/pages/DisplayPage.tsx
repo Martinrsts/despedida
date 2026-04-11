@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { GameState } from "../lib/types";
+import { getCategoryEmoji } from "../lib/categoryEmoji";
 
 export const DisplayPage = () => {
   const socket = useMemo(() => getSocket(), []);
@@ -9,10 +10,14 @@ export const DisplayPage = () => {
   const [state, setState] = useState<GameState | null>(null);
   const [error, setError] = useState("");
   const [secondsLeft, setSecondsLeft] = useState<number>(25);
+  const [revealedCount, setRevealedCount] = useState(0);
 
   useEffect(() => {
     const onState = (payload: GameState) => {
       setState(payload);
+      if (payload.phase === "reveal") {
+        setRevealedCount(0);
+      }
     };
 
     socket.on("state_sync", onState);
@@ -20,6 +25,18 @@ export const DisplayPage = () => {
       socket.off("state_sync", onState);
     };
   }, [socket]);
+
+  useEffect(() => {
+    if (
+      state?.phase === "reveal" &&
+      revealedCount < (state.revealedAnswers?.length || 0)
+    ) {
+      const timer = setTimeout(() => {
+        setRevealedCount((prev) => prev + 1);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [revealedCount, state?.phase, state?.revealedAnswers?.length]);
 
   useEffect(() => {
     if (!state?.timerEndsAt || state.phase !== "answering") {
@@ -105,7 +122,10 @@ export const DisplayPage = () => {
 
             {state.phase === "answering" && (
               <>
-                <h2>{state.question?.text}</h2>
+                <h2>
+                  {state.question && getCategoryEmoji(state.question.category)}{" "}
+                  {state.question?.text}
+                </h2>
                 <p className="timer large">{secondsLeft}s</p>
               </>
             )}
@@ -128,13 +148,27 @@ export const DisplayPage = () => {
             {state.phase === "reveal" && (
               <>
                 <h2>Who wrote what?</h2>
-                <ul className="big-list">
-                  {state.revealedAnswers.map((entry) => (
-                    <li key={entry.playerId}>
-                      <strong>{entry.playerName}</strong>: {entry.answer}{" "}
-                      {entry.isCorrect ? "(correct)" : ""}
-                    </li>
-                  ))}
+                <ul className="big-list reveal-list">
+                  {(state.revealedAnswers || [])
+                    .slice(0, revealedCount)
+                    .map((entry, idx) => (
+                      <li
+                        key={entry.playerId}
+                        className="reveal-item big-reveal"
+                        style={{
+                          animationDelay: `${idx * 0.1}s`,
+                        }}
+                      >
+                        <span className="reveal-answer-big">
+                          <strong>{entry.playerName}</strong>: {entry.answer}
+                        </span>
+                        <span
+                          className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
+                        >
+                          {entry.isCorrect ? "✓ CORRECT" : "✗ INCORRECT"}
+                        </span>
+                      </li>
+                    ))}
                 </ul>
               </>
             )}
