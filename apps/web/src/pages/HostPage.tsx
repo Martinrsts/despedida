@@ -19,6 +19,7 @@ export const HostPage = () => {
   );
 
   const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
+  const [selectedFunnyIds, setSelectedFunnyIds] = useState<string[]>([]);
   const [revealStep, setRevealStep] = useState(0);
   const previousPhaseRef = useRef<GameState["phase"] | null>(null);
 
@@ -28,6 +29,7 @@ export const HostPage = () => {
       setRoomCode(payload.roomCode);
       if (payload.phase !== "host_judging") {
         setSelectedCorrectIds([]);
+        setSelectedFunnyIds([]);
       }
       if (payload.phase === "reveal" && previousPhaseRef.current !== "reveal") {
         setRevealStep(0);
@@ -120,12 +122,21 @@ export const HostPage = () => {
     );
   };
 
+  const toggleFunny = (playerId: string) => {
+    setSelectedFunnyIds((current) =>
+      current.includes(playerId)
+        ? current.filter((id) => id !== playerId)
+        : [...current, playerId],
+    );
+  };
+
   const confirmCorrect = () => {
     socket.emit(
       "host_select_answers",
       {
         roomCode,
         correctPlayerIds: selectedCorrectIds,
+        funnyPlayerIds: selectedFunnyIds,
       },
       (ack: { ok: boolean; error?: string }) => {
         if (!ack.ok) {
@@ -300,13 +311,21 @@ export const HostPage = () => {
               <div className="stack">
                 <div className="judging-header">
                   <h2>Select correct answers</h2>
-                  <span className="selection-counter">
-                    {selectedCorrectIds.length} selected
-                  </span>
+                  <div className="judging-counters">
+                    <span className="selection-counter">
+                      {selectedCorrectIds.length} correct
+                    </span>
+                    <span className="funny-counter">
+                      {selectedFunnyIds.length} funny 😂
+                    </span>
+                  </div>
                 </div>
                 <p style={{ margin: "0 0 16px 0", color: "#666" }}>
-                  Tap each answer to mark it as correct.{" "}
-                  {selectedCorrectIds.length > 0 && "Click confirm when ready."}
+                  Tap each answer to mark it as correct, or press 😂 for a
+                  funny-answer bonus.{" "}
+                  {(selectedCorrectIds.length > 0 ||
+                    selectedFunnyIds.length > 0) &&
+                    "Click confirm when ready."}
                 </p>
                 <div className="answers-container">
                   {(state.judgingAnswers || []).map((entry) => (
@@ -323,16 +342,37 @@ export const HostPage = () => {
                         {selectedCorrectIds.includes(entry.playerId) && "✓"}
                       </div>
                       <span className="answer-text">{entry.answer}</span>
+                      <button
+                        className={`funny-toggle ${
+                          selectedFunnyIds.includes(entry.playerId)
+                            ? "selected"
+                            : ""
+                        }`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleFunny(entry.playerId);
+                        }}
+                        title="Mark as funny answer bonus"
+                        type="button"
+                      >
+                        😂
+                      </button>
                     </div>
                   ))}
                 </div>
                 <button
                   className="btn"
                   onClick={confirmCorrect}
-                  disabled={selectedCorrectIds.length === 0}
+                  disabled={
+                    selectedCorrectIds.length === 0 &&
+                    selectedFunnyIds.length === 0
+                  }
                 >
                   Confirm {selectedCorrectIds.length} correct answer
                   {selectedCorrectIds.length !== 1 ? "s" : ""}
+                  {selectedFunnyIds.length > 0
+                    ? ` + ${selectedFunnyIds.length} funny bonus`
+                    : ""}
                 </button>
               </div>
             )}

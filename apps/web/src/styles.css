@@ -138,6 +138,33 @@
   }
 }
 
+@keyframes confettiPop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(1.1);
+  }
+}
+
+@keyframes laughFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.7) rotate(-6deg);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scale(1.05) rotate(6deg);
+  }
+}
 * {
   box-sizing: border-box;
 }
@@ -486,6 +513,30 @@ a:hover {
   font-weight: 500;
 }
 
+.funny-toggle {
+  border: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #ffe7c2;
+  cursor: pointer;
+  font-size: 1rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.funny-toggle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(255, 159, 67, 0.35);
+}
+
+.funny-toggle.selected {
+  background: linear-gradient(135deg, #ff9f43 0%, #ff6e9f 100%);
+  box-shadow: 0 5px 12px rgba(255, 110, 159, 0.4);
+}
+
 .judging-header {
   display: flex;
   justify-content: space-between;
@@ -499,6 +550,21 @@ a:hover {
     var(--accent-pink) 0%,
     var(--accent-yellow) 100%
   );
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.judging-counters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.funny-counter {
+  background: linear-gradient(135deg, #ff9f43 0%, #ff6e9f 100%);
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
@@ -675,6 +741,8 @@ a:hover {
   background: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   border-left: 4px solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
 .big-reveal.reveal-item.correct {
@@ -683,6 +751,75 @@ a:hover {
 
 .big-reveal.reveal-item.incorrect {
   border-left-color: #ff4757;
+}
+
+.funny-burst {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 96px;
+  height: 58px;
+  pointer-events: none;
+}
+
+.funny-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confettiPop 0.9s ease-out forwards;
+}
+
+.funny-confetti.c1 {
+  left: 8px;
+  top: 32px;
+  background: #ffd93d;
+}
+
+.funny-confetti.c2 {
+  left: 24px;
+  top: 28px;
+  background: #6bcf7f;
+  animation-delay: 0.1s;
+}
+
+.funny-confetti.c3 {
+  left: 42px;
+  top: 34px;
+  background: #5dade2;
+  animation-delay: 0.15s;
+}
+
+.funny-confetti.c4 {
+  left: 60px;
+  top: 30px;
+  background: #ff6e9f;
+  animation-delay: 0.05s;
+}
+
+.funny-emoji {
+  position: absolute;
+  font-size: 1.15rem;
+  opacity: 0;
+  animation: laughFloat 1.05s ease-out forwards;
+}
+
+.funny-emoji.e1 {
+  left: 10px;
+  top: 22px;
+}
+
+.funny-emoji.e2 {
+  left: 34px;
+  top: 18px;
+  animation-delay: 0.12s;
+}
+
+.funny-emoji.e3 {
+  left: 56px;
+  top: 24px;
+  animation-delay: 0.22s;
 }
 
 @media (max-width: 640px) {

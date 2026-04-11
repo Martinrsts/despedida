@@ -66,6 +66,8 @@ const PHASE_LABEL: Record<Phase, string> = {
   finished: "Game finished",
 };
 
+const FUNNY_ANSWER_BONUS = 50;
+
 const clampText = (value: string, max = 140): string =>
   value.trim().slice(0, max);
 
@@ -208,6 +210,7 @@ const baseState = (room: Room) => {
         playerName: room.players[playerId]?.name || "Unknown",
         answer,
         isCorrect: (round?.selectedCorrectPlayerIds || []).includes(playerId),
+        isFunny: (round?.selectedFunnyPlayerIds || []).includes(playerId),
       }),
     ),
     questionOptions: round?.questionOptions || [],
@@ -231,6 +234,9 @@ const emitState = (room: Room): void => {
         ([playerId, answer]) => ({
           playerId,
           answer,
+          isFunny: Boolean(
+            room.currentRound?.selectedFunnyPlayerIds.includes(playerId),
+          ),
         }),
       ),
     });
@@ -284,6 +290,7 @@ const beginNewRound = (room: Room): void => {
     questionOptions: options,
     answers: {},
     selectedCorrectPlayerIds: [],
+    selectedFunnyPlayerIds: [],
     expectedAnswerPlayerIds: [],
   };
   room.phase = "host_pick";
@@ -324,7 +331,8 @@ const startAnswering = (room: Room): void => {
 
 const applyScores = (room: Room): void => {
   if (!room.currentRound) return;
-  const correctIds = room.currentRound.selectedCorrectPlayerIds;
+  const correctIds = [...new Set(room.currentRound.selectedCorrectPlayerIds)];
+  const funnyIds = [...new Set(room.currentRound.selectedFunnyPlayerIds)];
   const ratio = correctIds.length / activePlayerCount(room);
   const bonus = ratio < 0.3 ? 100 : 0;
 
@@ -332,6 +340,12 @@ const applyScores = (room: Room): void => {
     const player = room.players[playerId];
     if (!player) return;
     player.score += 100 + bonus;
+  });
+
+  funnyIds.forEach((playerId) => {
+    const player = room.players[playerId];
+    if (!player) return;
+    player.score += FUNNY_ANSWER_BONUS;
   });
 
   io.to(room.code).emit("update_scores", {
@@ -518,6 +532,7 @@ io.on("connection", (socket) => {
       room.usedQuestionIds.add(selected.id);
       room.currentRound.answers = {};
       room.currentRound.selectedCorrectPlayerIds = [];
+      room.currentRound.selectedFunnyPlayerIds = [];
 
       startAnswering(room);
       cb?.({ ok: true });
@@ -603,6 +618,9 @@ io.on("connection", (socket) => {
       const answerPlayerIds = Object.keys(room.currentRound.answers);
       room.currentRound.selectedCorrectPlayerIds =
         payload.correctPlayerIds.filter((id) => answerPlayerIds.includes(id));
+      room.currentRound.selectedFunnyPlayerIds = (
+        payload.funnyPlayerIds || []
+      ).filter((id) => answerPlayerIds.includes(id));
 
       applyScores(room);
       room.phase = "reveal";

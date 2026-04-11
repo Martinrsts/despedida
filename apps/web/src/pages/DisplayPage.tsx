@@ -180,6 +180,17 @@ export const DisplayPage = () => {
                             {entry.isCorrect ? "✓ CORRECT" : "✗ INCORRECT"}
                           </span>
                         )}
+                        {idx < statusRevealCount && entry.isFunny && (
+                          <div className="funny-burst" aria-hidden="true">
+                            <span className="funny-confetti c1" />
+                            <span className="funny-confetti c2" />
+                            <span className="funny-confetti c3" />
+                            <span className="funny-confetti c4" />
+                            <span className="funny-emoji e1">😂</span>
+                            <span className="funny-emoji e2">🤣</span>
+                            <span className="funny-emoji e3">😆</span>
+                          </div>
+                        )}
                       </li>
                     ))}
                 </ul>

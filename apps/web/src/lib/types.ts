@@ -22,6 +22,7 @@ export interface DisplayAnswer {
   playerName: string;
   answer: string;
   isCorrect: boolean;
+  isFunny: boolean;
 }
 
 export interface GameState {
@@ -46,7 +47,11 @@ export interface GameState {
   leaderboard?: Array<{ id: string; name: string; score: number }>;
   yourScore?: number;
   hasSubmitted?: boolean;
-  judgingAnswers?: Array<{ playerId: string; answer: string }>;
+  judgingAnswers?: Array<{
+    playerId: string;
+    answer: string;
+    isFunny: boolean;
+  }>;
   finalAwards?: {
     bestFriend: string;
     leastKnowledge: string;
