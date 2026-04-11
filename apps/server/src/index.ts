@@ -23,7 +23,9 @@ const normalizeOrigin = (value: string): string => {
   if (value.startsWith("http://") || value.startsWith("https://")) {
     return value;
   }
-  return `https://${value}`;
+
+  const host = value.includes(".") ? value : `${value}.onrender.com`;
+  return `https://${host}`;
 };
 
 const CLIENT_ORIGIN = normalizeOrigin(
