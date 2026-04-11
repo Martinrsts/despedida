@@ -19,7 +19,16 @@ import {
 } from "./types.js";
 
 const PORT = Number(process.env.PORT || 4000);
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const normalizeOrigin = (value: string): string => {
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+  return `https://${value}`;
+};
+
+const CLIENT_ORIGIN = normalizeOrigin(
+  process.env.CLIENT_ORIGIN || "http://localhost:5173",
+);
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN }));

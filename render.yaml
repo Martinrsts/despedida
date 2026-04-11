@@ -11,7 +11,7 @@ services:
         fromService:
           type: web
           name: despedida-quiz-web
-          property: url
+          property: host
 
   - type: web
     name: despedida-quiz-web
@@ -24,7 +24,7 @@ services:
         fromService:
           type: web
           name: despedida-quiz-server
-          property: url
+          property: host
     routes:
       - type: rewrite
         source: /*
