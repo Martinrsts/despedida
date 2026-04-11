@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: despedida-quiz-server
+    env: node
+    rootDir: .
+    buildCommand: npm install && npm run build -w apps/server
+    startCommand: npm run start -w apps/server
+    plan: free
+    envVars:
+      - key: CLIENT_ORIGIN
+        fromService:
+          type: web
+          name: despedida-quiz-web
+          property: url
+
+  - type: web
+    name: despedida-quiz-web
+    env: static
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_SERVER_URL
+        fromService:
+          type: web
+          name: despedida-quiz-server
+          property: url
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
