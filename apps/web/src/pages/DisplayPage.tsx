@@ -35,7 +35,7 @@ export const DisplayPage = () => {
     if (revealStep < maxSteps) {
       const timer = setTimeout(() => {
         setRevealStep((prev) => prev + 1);
-      }, 700);
+      }, 950);
       return () => clearTimeout(timer);
     }
   }, [revealStep, state]);
@@ -145,7 +145,6 @@ export const DisplayPage = () => {
                       className="anon-card anon-card-display"
                       key={`${answer}-${idx}`}
                     >
-                      <span className="anon-index">#{idx + 1}</span>
                       <p className="anon-text anon-text-display">{answer}</p>
                     </div>
                   ))}
@@ -166,7 +165,7 @@ export const DisplayPage = () => {
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
-                        className="reveal-item big-reveal"
+                        className={`reveal-item big-reveal ${entry.isCorrect ? "correct" : "incorrect"}`}
                         style={{
                           animationDelay: `${idx * 0.1}s`,
                         }}

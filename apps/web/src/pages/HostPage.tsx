@@ -48,7 +48,7 @@ export const HostPage = () => {
     if (revealStep < maxSteps) {
       const timer = setTimeout(() => {
         setRevealStep((prev) => prev + 1);
-      }, 700);
+      }, 950);
       return () => clearTimeout(timer);
     }
   }, [revealStep, state]);
@@ -196,7 +196,10 @@ export const HostPage = () => {
 
                 <div className="section">
                   <h3>Custom questions</h3>
-                  <p>Add up to 20 questions before the game starts.</p>
+                  <p>
+                    Add up to 20 questions from lobby or while picking a round
+                    question.
+                  </p>
                   <form className="stack" onSubmit={submitCustomQuestion}>
                     <textarea
                       value={customQuestionText}
@@ -233,6 +236,30 @@ export const HostPage = () => {
             {state.phase === "host_pick" && (
               <div className="stack">
                 <h2>Select one question</h2>
+                <div className="section">
+                  <h3>Add a custom question for this round</h3>
+                  <form className="stack" onSubmit={submitCustomQuestion}>
+                    <textarea
+                      value={customQuestionText}
+                      onChange={(e) => setCustomQuestionText(e.target.value)}
+                      placeholder="Add custom question"
+                      maxLength={120}
+                    />
+                    <select
+                      value={customCategory}
+                      onChange={(e) =>
+                        setCustomCategory(e.target.value as Category)
+                      }
+                    >
+                      <option value="safe">🟢 safe</option>
+                      <option value="fun">😄 fun</option>
+                      <option value="spicy">🌶️ spicy</option>
+                    </select>
+                    <button className="btn" type="submit">
+                      Add custom question
+                    </button>
+                  </form>
+                </div>
                 {state.questionOptions.map((question) => (
                   <button
                     className="btn ghost"
@@ -259,7 +286,6 @@ export const HostPage = () => {
                 <div className="anon-grid">
                   {state.anonymousAnswers.map((answer, idx) => (
                     <div className="anon-card" key={`${answer}-${idx}`}>
-                      <span className="anon-index">#{idx + 1}</span>
                       <p className="anon-text">{answer}</p>
                     </div>
                   ))}
@@ -320,7 +346,7 @@ export const HostPage = () => {
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
-                        className="reveal-item"
+                        className={`reveal-item big-reveal ${entry.isCorrect ? "correct" : "incorrect"}`}
                         style={{
                           animationDelay: `${idx * 0.1}s`,
                         }}

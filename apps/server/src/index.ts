@@ -198,7 +198,10 @@ const baseState = (room: Room) => {
       score: p.score,
     })),
     question: round?.selectedQuestion,
-    anonymousAnswers: Object.values(round?.answers || {}),
+    anonymousAnswers: randomPickUnique(
+      Object.values(round?.answers || {}),
+      Object.values(round?.answers || {}).length,
+    ),
     revealedAnswers: Object.entries(round?.answers || {}).map(
       ([playerId, answer]) => ({
         playerId,
@@ -449,10 +452,11 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (room.phase !== "lobby") {
+      if (room.phase !== "lobby" && room.phase !== "host_pick") {
         cb?.({
           ok: false,
-          error: "Custom questions can be added only before game starts.",
+          error:
+            "Custom questions can be added in lobby or while picking a question.",
         });
         return;
       }
@@ -477,6 +481,12 @@ io.on("connection", (socket) => {
       };
 
       room.customQuestions.push(question);
+
+      // When host is currently selecting a question, make the new one available immediately.
+      if (room.phase === "host_pick" && room.currentRound) {
+        room.currentRound.questionOptions.unshift(question);
+      }
+
       emitState(room);
       cb?.({ ok: true });
     },

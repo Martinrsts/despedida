@@ -580,17 +580,6 @@ a:hover {
   justify-content: center;
 }
 
-.anon-index {
-  display: inline-block;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #334083;
-  background: linear-gradient(135deg, #dbe4ff, #f2ddff);
-  border-radius: 999px;
-  padding: 4px 10px;
-  margin-bottom: 10px;
-}
-
 .anon-text {
   margin: 0;
   color: #26314a;
@@ -665,7 +654,7 @@ a:hover {
   border-radius: 8px;
   font-weight: 700;
   font-size: 0.9rem;
-  animation: statusPulse 0.4s ease-out;
+  animation: statusPulse 0.7s ease-out;
   width: fit-content;
 }
 
@@ -688,8 +677,12 @@ a:hover {
   border-left: 4px solid transparent;
 }
 
-.big-reveal.reveal-item {
+.big-reveal.reveal-item.correct {
   border-left-color: #43e97b;
+}
+
+.big-reveal.reveal-item.incorrect {
+  border-left-color: #ff4757;
 }
 
 @media (max-width: 640px) {
