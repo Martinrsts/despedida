@@ -843,6 +843,16 @@ a:hover {
   text-align: center;
 }
 
+.display-stack .display-lobby-code {
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 16px 34px;
+  border-radius: 999px;
+  justify-self: center;
+  box-shadow: 0 16px 36px rgba(45, 76, 200, 0.28);
+}
+
 .big-list {
   list-style-position: inside;
   font-size: 1.35rem;
@@ -1480,6 +1490,61 @@ a:hover {
   margin-bottom: 18px;
 }
 
+.final-non-podium {
+  margin: 0 auto 18px;
+  width: min(760px, 100%);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(45, 76, 200, 0.14);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.final-non-podium h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.non-podium-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.non-podium-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(45, 76, 200, 0.12);
+}
+
+.non-podium-rank {
+  font-weight: 800;
+  color: #445b9b;
+}
+
+.non-podium-name {
+  font-weight: 600;
+  color: #22304d;
+  text-align: left;
+}
+
+.non-podium-score {
+  font-weight: 700;
+  color: #2f4a86;
+}
+
+.non-podium-empty {
+  margin: 0;
+  color: #5e6e95;
+  font-weight: 600;
+}
+
 .podium-stage {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1491,6 +1556,16 @@ a:hover {
   display: grid;
   gap: 8px;
   justify-items: center;
+  animation: ceremonyRise 0.55s ease-out;
+}
+
+.podium-column.hidden {
+  opacity: 0.45;
+  transform: translateY(10px) scale(0.98);
+}
+
+.podium-column.revealed {
+  opacity: 1;
   animation: ceremonyRise 0.55s ease-out;
 }
 
@@ -1550,6 +1625,12 @@ a:hover {
 .podium-column.rank-3 .podium-block {
   min-height: 95px;
   background: linear-gradient(180deg, #fff3e6, #f5d7b7);
+}
+
+.podium-column.hidden .podium-block {
+  border-style: dashed;
+  border-color: #cfd8ef;
+  background: linear-gradient(180deg, #f6f8ff, #eaf0ff);
 }
 
 .podium-medal {

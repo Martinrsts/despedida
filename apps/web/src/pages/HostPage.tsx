@@ -337,20 +337,7 @@ export const HostPage = () => {
 
             {state.phase === "host_judging" && (
               <div className="stack">
-                <div className="judging-header">
-                  <h2>Select correct answers</h2>
-                  <div className="judging-counters">
-                    <span className="selection-counter">
-                      {selectedCorrectIds.length} correct
-                    </span>
-                    <span className="funny-counter">
-                      {selectedFunnyIds.length} funny 😂
-                    </span>
-                    <span className="beer-counter">
-                      {selectedBeerIds.length} beer 🍺
-                    </span>
-                  </div>
-                </div>
+                <h2>Select correct answers</h2>
                 <p style={{ margin: "0 0 16px 0", color: "#666" }}>
                   Tap each answer to mark it as correct, or press 😂 for a
                   funny-answer bonus, or 🍺 to make that player pay a beer.{" "}
@@ -410,20 +397,9 @@ export const HostPage = () => {
                 <button
                   className="btn"
                   onClick={confirmCorrect}
-                  disabled={
-                    selectedCorrectIds.length === 0 &&
-                    selectedFunnyIds.length === 0 &&
-                    selectedBeerIds.length === 0
-                  }
+                  disabled={selectedBeerIds.length === 0}
                 >
-                  Confirm {selectedCorrectIds.length} correct answer
-                  {selectedCorrectIds.length !== 1 ? "s" : ""}
-                  {selectedFunnyIds.length > 0
-                    ? ` + ${selectedFunnyIds.length} funny bonus`
-                    : ""}
-                  {selectedBeerIds.length > 0
-                    ? ` + ${selectedBeerIds.length} beer`
-                    : ""}
+                  Confirmar
                 </button>
               </div>
             )}

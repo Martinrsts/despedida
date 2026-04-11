@@ -23,6 +23,7 @@ export const DisplayPage = () => {
   const [timerProgress, setTimerProgress] = useState<number>(1);
   const [revealStep, setRevealStep] = useState(0);
   const [leaderboardRevealCount, setLeaderboardRevealCount] = useState(0);
+  const [finishedPodiumStep, setFinishedPodiumStep] = useState(0);
   const previousPhaseRef = useRef<GameState["phase"] | null>(null);
 
   useEffect(() => {
@@ -36,6 +37,12 @@ export const DisplayPage = () => {
         previousPhaseRef.current !== "leaderboard"
       ) {
         setLeaderboardRevealCount(0);
+      }
+      if (
+        payload.phase === "finished" &&
+        previousPhaseRef.current !== "finished"
+      ) {
+        setFinishedPodiumStep(0);
       }
       previousPhaseRef.current = payload.phase;
     };
@@ -84,6 +91,18 @@ export const DisplayPage = () => {
     return () => window.clearInterval(id);
   }, [state?.timerEndsAt, state?.phase]);
 
+  useEffect(() => {
+    if (!state || state.phase !== "finished") return;
+    if (finishedPodiumStep >= 3) return;
+
+    const delay = finishedPodiumStep === 0 ? 1400 : 1200;
+    const timer = setTimeout(() => {
+      setFinishedPodiumStep((prev) => Math.min(3, prev + 1));
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [finishedPodiumStep, state]);
+
   const timerStyle = {
     "--progress": timerProgress,
   } as CSSProperties;
@@ -116,10 +135,19 @@ export const DisplayPage = () => {
     leaderboardEntries.length - leaderboardRevealCount,
   );
   const finalTopThree = leaderboardEntries.slice(0, 3);
+  const nonPodiumEntries = leaderboardEntries.slice(3);
   const latestStatusEntry =
     statusRevealCount > 0 ? revealAnswers[statusRevealCount - 1] : undefined;
   const showFunnyScreenBurst = Boolean(latestStatusEntry?.isFunny);
   const showBeerScreenBurst = Boolean(latestStatusEntry?.isBeer);
+  const showWinnerConfetti = finishedPodiumStep >= 3;
+
+  const isPodiumRankRevealed = (rank: number): boolean => {
+    if (rank === 3) return finishedPodiumStep >= 1;
+    if (rank === 2) return finishedPodiumStep >= 2;
+    if (rank === 1) return finishedPodiumStep >= 3;
+    return false;
+  };
 
   return (
     <div className="page display-page">
@@ -174,7 +202,11 @@ export const DisplayPage = () => {
 
         {state && (
           <div className="stack display-stack">
-            <p className="badge">Room {state.roomCode}</p>
+            <p
+              className={`badge ${state.phase === "lobby" ? "display-lobby-code" : ""}`}
+            >
+              Room {state.roomCode}
+            </p>
             <h1>
               Round {state.roundNumber}/{state.totalRounds}
             </h1>
@@ -367,18 +399,47 @@ export const DisplayPage = () => {
             {state.phase === "finished" && (
               <>
                 <div className="final-ceremony">
-                  <div className="ceremony-overlay" aria-hidden="true">
-                    <span className="ceremony-confetti c1" />
-                    <span className="ceremony-confetti c2" />
-                    <span className="ceremony-confetti c3" />
-                    <span className="ceremony-confetti c4" />
-                    <span className="ceremony-confetti c5" />
-                    <span className="ceremony-confetti c6" />
-                    <span className="ceremony-confetti c7" />
-                    <span className="ceremony-confetti c8" />
-                  </div>
+                  {showWinnerConfetti && (
+                    <div
+                      className="ceremony-overlay"
+                      aria-hidden="true"
+                      key="winner-confetti"
+                    >
+                      <span className="ceremony-confetti c1" />
+                      <span className="ceremony-confetti c2" />
+                      <span className="ceremony-confetti c3" />
+                      <span className="ceremony-confetti c4" />
+                      <span className="ceremony-confetti c5" />
+                      <span className="ceremony-confetti c6" />
+                      <span className="ceremony-confetti c7" />
+                      <span className="ceremony-confetti c8" />
+                    </div>
+                  )}
 
                   <h2 className="ceremony-title">Grand Final Podium</h2>
+
+                  <div className="final-non-podium">
+                    <h3>Great game to everyone else</h3>
+                    {nonPodiumEntries.length > 0 ? (
+                      <ol className="non-podium-list">
+                        {nonPodiumEntries.map((entry, idx) => (
+                          <li key={entry.id} className="non-podium-item">
+                            <span className="non-podium-rank">#{idx + 4}</span>
+                            <span className="non-podium-name">
+                              {entry.name}
+                            </span>
+                            <span className="non-podium-score">
+                              {entry.score} pts
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="non-podium-empty">
+                        Only podium players this round.
+                      </p>
+                    )}
+                  </div>
 
                   <div className="podium-stage">
                     {[1, 0, 2].map((index) => {
@@ -386,16 +447,27 @@ export const DisplayPage = () => {
                       if (!entry) return null;
 
                       const rank = index + 1;
+                      const revealed = isPodiumRankRevealed(rank);
                       return (
                         <div
                           key={entry.id}
-                          className={`podium-column rank-${rank}`}
+                          className={`podium-column rank-${rank} ${revealed ? "revealed" : "hidden"}`}
                         >
-                          <div className="podium-player">{entry.name}</div>
-                          <div className="podium-score">{entry.score} pts</div>
+                          <div className="podium-player">
+                            {revealed ? entry.name : "???"}
+                          </div>
+                          <div className="podium-score">
+                            {revealed ? `${entry.score} pts` : "--"}
+                          </div>
                           <div className="podium-block">
                             <span className="podium-medal" aria-hidden="true">
-                              {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
+                              {revealed
+                                ? rank === 1
+                                  ? "🥇"
+                                  : rank === 2
+                                    ? "🥈"
+                                    : "🥉"
+                                : "❔"}
                             </span>
                             <span className="podium-rank">#{rank}</span>
                           </div>
