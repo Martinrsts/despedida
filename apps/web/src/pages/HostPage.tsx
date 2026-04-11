@@ -20,6 +20,7 @@ export const HostPage = () => {
 
   const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
   const [selectedFunnyIds, setSelectedFunnyIds] = useState<string[]>([]);
+  const [selectedBeerIds, setSelectedBeerIds] = useState<string[]>([]);
   const [revealStep, setRevealStep] = useState(0);
   const [leaderboardRevealCount, setLeaderboardRevealCount] = useState(0);
   const previousPhaseRef = useRef<GameState["phase"] | null>(null);
@@ -31,6 +32,7 @@ export const HostPage = () => {
       if (payload.phase !== "host_judging") {
         setSelectedCorrectIds([]);
         setSelectedFunnyIds([]);
+        setSelectedBeerIds([]);
       }
       if (payload.phase === "reveal" && previousPhaseRef.current !== "reveal") {
         setRevealStep(0);
@@ -156,6 +158,7 @@ export const HostPage = () => {
         roomCode,
         correctPlayerIds: selectedCorrectIds,
         funnyPlayerIds: selectedFunnyIds,
+        beerPlayerIds: selectedBeerIds,
       },
       (ack: { ok: boolean; error?: string }) => {
         if (!ack.ok) {
@@ -167,6 +170,14 @@ export const HostPage = () => {
 
   const continueFlow = () => {
     socket.emit("host_continue", { roomCode });
+  };
+
+  const toggleBeer = (playerId: string) => {
+    setSelectedBeerIds((current) =>
+      current.includes(playerId)
+        ? current.filter((id) => id !== playerId)
+        : [...current, playerId],
+    );
   };
 
   const revealAnswers = state?.revealedAnswers || [];
@@ -317,13 +328,17 @@ export const HostPage = () => {
                     <span className="funny-counter">
                       {selectedFunnyIds.length} funny 😂
                     </span>
+                    <span className="beer-counter">
+                      {selectedBeerIds.length} beer 🍺
+                    </span>
                   </div>
                 </div>
                 <p style={{ margin: "0 0 16px 0", color: "#666" }}>
                   Tap each answer to mark it as correct, or press 😂 for a
-                  funny-answer bonus.{" "}
+                  funny-answer bonus, or 🍺 to make that player pay a beer.{" "}
                   {(selectedCorrectIds.length > 0 ||
-                    selectedFunnyIds.length > 0) &&
+                    selectedFunnyIds.length > 0 ||
+                    selectedBeerIds.length > 0) &&
                     "Click confirm when ready."}
                 </p>
                 <div className="answers-container">
@@ -356,6 +371,21 @@ export const HostPage = () => {
                       >
                         😂
                       </button>
+                      <button
+                        className={`beer-toggle ${
+                          selectedBeerIds.includes(entry.playerId)
+                            ? "selected"
+                            : ""
+                        }`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleBeer(entry.playerId);
+                        }}
+                        title="Mark player to pay a beer"
+                        type="button"
+                      >
+                        🍺
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -364,13 +394,17 @@ export const HostPage = () => {
                   onClick={confirmCorrect}
                   disabled={
                     selectedCorrectIds.length === 0 &&
-                    selectedFunnyIds.length === 0
+                    selectedFunnyIds.length === 0 &&
+                    selectedBeerIds.length === 0
                   }
                 >
                   Confirm {selectedCorrectIds.length} correct answer
                   {selectedCorrectIds.length !== 1 ? "s" : ""}
                   {selectedFunnyIds.length > 0
                     ? ` + ${selectedFunnyIds.length} funny bonus`
+                    : ""}
+                  {selectedBeerIds.length > 0
+                    ? ` + ${selectedBeerIds.length} beer`
                     : ""}
                 </button>
               </div>

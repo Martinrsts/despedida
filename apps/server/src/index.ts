@@ -185,6 +185,7 @@ const baseState = (room: Room) => {
         answer,
         isCorrect: (round?.selectedCorrectPlayerIds || []).includes(playerId),
         isFunny: (round?.selectedFunnyPlayerIds || []).includes(playerId),
+        isBeer: (round?.selectedBeerPlayerIds || []).includes(playerId),
       }),
     ),
     questionOptions: round?.questionOptions || [],
@@ -209,6 +210,9 @@ const emitState = (room: Room): void => {
           answer,
           isFunny: Boolean(
             room.currentRound?.selectedFunnyPlayerIds.includes(playerId),
+          ),
+          isBeer: Boolean(
+            room.currentRound?.selectedBeerPlayerIds.includes(playerId),
           ),
         }),
       ),
@@ -262,6 +266,7 @@ const beginNewRound = (room: Room): void => {
     answers: {},
     selectedCorrectPlayerIds: [],
     selectedFunnyPlayerIds: [],
+    selectedBeerPlayerIds: [],
     expectedAnswerPlayerIds: [],
   };
   room.phase = "host_pick";
@@ -503,6 +508,7 @@ io.on("connection", (socket) => {
       room.currentRound.answers = {};
       room.currentRound.selectedCorrectPlayerIds = [];
       room.currentRound.selectedFunnyPlayerIds = [];
+      room.currentRound.selectedBeerPlayerIds = [];
 
       startAnswering(room);
       cb?.({ ok: true });
@@ -590,6 +596,9 @@ io.on("connection", (socket) => {
         payload.correctPlayerIds.filter((id) => answerPlayerIds.includes(id));
       room.currentRound.selectedFunnyPlayerIds = (
         payload.funnyPlayerIds || []
+      ).filter((id) => answerPlayerIds.includes(id));
+      room.currentRound.selectedBeerPlayerIds = (
+        payload.beerPlayerIds || []
       ).filter((id) => answerPlayerIds.includes(id));
 
       applyScores(room);

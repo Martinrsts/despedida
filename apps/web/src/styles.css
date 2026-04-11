@@ -637,6 +637,30 @@ a:hover {
   box-shadow: 0 5px 12px rgba(255, 110, 159, 0.4);
 }
 
+.beer-toggle {
+  border: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #fff0c8;
+  cursor: pointer;
+  font-size: 1rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.beer-toggle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(233, 166, 40, 0.35);
+}
+
+.beer-toggle.selected {
+  background: linear-gradient(135deg, #ffc445 0%, #ff8a26 100%);
+  box-shadow: 0 5px 12px rgba(255, 138, 38, 0.45);
+}
+
 .judging-header {
   display: flex;
   justify-content: space-between;
@@ -665,6 +689,15 @@ a:hover {
 
 .funny-counter {
   background: linear-gradient(135deg, #ff9f43 0%, #ff6e9f 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.beer-counter {
+  background: linear-gradient(135deg, #ffc445 0%, #ff8a26 100%);
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
@@ -1144,6 +1177,120 @@ a:hover {
   top: 62%;
 }
 
+.beer-screen-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 16;
+  overflow: hidden;
+}
+
+.beer-screen-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 194, 69, 0.35) 0%,
+    rgba(255, 194, 69, 0) 68%
+  );
+  animation: beerGlowPulse 1.1s ease-out forwards;
+}
+
+.beer-screen-emoji {
+  position: absolute;
+  font-size: 3rem;
+  opacity: 0;
+  animation: beerEmojiPop 1s ease-out forwards;
+}
+
+.beer-screen-emoji.b1 {
+  left: 14%;
+  top: 58%;
+}
+
+.beer-screen-emoji.b2 {
+  left: 32%;
+  top: 36%;
+  animation-delay: 0.08s;
+}
+
+.beer-screen-emoji.b3 {
+  left: 52%;
+  top: 62%;
+  animation-delay: 0.14s;
+}
+
+.beer-screen-emoji.b4 {
+  left: 72%;
+  top: 34%;
+  animation-delay: 0.2s;
+}
+
+.beer-screen-emoji.b5 {
+  left: 84%;
+  top: 56%;
+  animation-delay: 0.26s;
+}
+
+.beer-screen-banner {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #3b2608 0%, #6e420d 100%);
+  color: #ffe8b5;
+  border: 2px solid rgba(255, 196, 69, 0.6);
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 16px 30px rgba(59, 38, 8, 0.45);
+  animation: beerBannerIn 1s ease-out forwards;
+  text-align: center;
+}
+
+@keyframes beerGlowPulse {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes beerEmojiPop {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.4) rotate(-14deg);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.12) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-48px) scale(0.94) rotate(0deg);
+  }
+}
+
+@keyframes beerBannerIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px) scale(0.8);
+  }
+  35% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
 .funny-screen-emoji.e2 {
   left: 42%;
   top: 58%;

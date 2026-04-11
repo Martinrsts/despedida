@@ -23,6 +23,7 @@ export interface DisplayAnswer {
   answer: string;
   isCorrect: boolean;
   isFunny: boolean;
+  isBeer: boolean;
 }
 
 export interface GameState {
@@ -51,5 +52,6 @@ export interface GameState {
     playerId: string;
     answer: string;
     isFunny: boolean;
+    isBeer: boolean;
   }>;
 }

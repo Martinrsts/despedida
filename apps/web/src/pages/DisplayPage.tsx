@@ -106,6 +106,7 @@ export const DisplayPage = () => {
   const latestStatusEntry =
     statusRevealCount > 0 ? revealAnswers[statusRevealCount - 1] : undefined;
   const showFunnyScreenBurst = Boolean(latestStatusEntry?.isFunny);
+  const showBeerScreenBurst = Boolean(latestStatusEntry?.isBeer);
 
   return (
     <div className="page display-page">
@@ -216,6 +217,34 @@ export const DisplayPage = () => {
                     <span className="funny-screen-emoji e8">🤣</span>
                     <span className="funny-screen-emoji e9">😂</span>
                     <span className="funny-screen-emoji e10">😆</span>
+                  </div>
+                )}
+                {showBeerScreenBurst && (
+                  <div
+                    className="beer-screen-burst"
+                    key={`beer-burst-${statusRevealCount}`}
+                    aria-live="polite"
+                  >
+                    <span className="beer-screen-glow" aria-hidden="true" />
+                    <span className="beer-screen-emoji b1" aria-hidden="true">
+                      🍺
+                    </span>
+                    <span className="beer-screen-emoji b2" aria-hidden="true">
+                      🍻
+                    </span>
+                    <span className="beer-screen-emoji b3" aria-hidden="true">
+                      🍺
+                    </span>
+                    <span className="beer-screen-emoji b4" aria-hidden="true">
+                      🍻
+                    </span>
+                    <span className="beer-screen-emoji b5" aria-hidden="true">
+                      🍺
+                    </span>
+                    <div className="beer-screen-banner">
+                      <strong>{latestStatusEntry?.playerName}</strong> paga una
+                      cerveza 🍺
+                    </div>
                   </div>
                 )}
                 <h2>Who wrote what?</h2>
