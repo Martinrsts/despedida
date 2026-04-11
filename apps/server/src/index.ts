@@ -437,11 +437,10 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (room.phase !== "lobby" && room.phase !== "host_pick") {
+      if (room.phase !== "host_pick") {
         cb?.({
           ok: false,
-          error:
-            "Custom questions can be added in lobby or while picking a question.",
+          error: "Custom questions can be added only while picking a question.",
         });
         return;
       }
@@ -467,9 +466,9 @@ io.on("connection", (socket) => {
 
       room.customQuestions.push(question);
 
-      // When host is currently selecting a question, make the new one available immediately.
+      // Make the new custom question available immediately, but do not auto-select it.
       if (room.phase === "host_pick" && room.currentRound) {
-        room.currentRound.questionOptions.unshift(question);
+        room.currentRound.questionOptions.push(question);
       }
 
       emitState(room);

@@ -69,7 +69,7 @@ export const HostPage = () => {
     if (leaderboardRevealCount < total) {
       const timer = setTimeout(() => {
         setLeaderboardRevealCount((prev) => prev + 1);
-      }, 600);
+      }, 750);
       return () => clearTimeout(timer);
     }
   }, [leaderboardRevealCount, state]);
@@ -174,6 +174,10 @@ export const HostPage = () => {
   const statusRevealCount = Math.floor(revealStep / 2);
   const maxRevealSteps = revealAnswers.length * 2;
   const leaderboardEntries = state?.leaderboard || [];
+  const leaderboardRankById = new Map(
+    leaderboardEntries.map((entry, index) => [entry.id, index + 1]),
+  );
+  const leaderboardRevealOrder = [...leaderboardEntries].reverse();
 
   return (
     <div className="page host-page">
@@ -225,11 +229,33 @@ export const HostPage = () => {
                   ))}
                 </ul>
 
+                <button
+                  className="btn"
+                  onClick={startGame}
+                  disabled={state.playerCount === 0}
+                >
+                  Start game
+                </button>
+              </div>
+            )}
+
+            {state.phase === "host_pick" && (
+              <div className="stack">
+                <h2>Select one question</h2>
+                {state.questionOptions.map((question) => (
+                  <button
+                    className="btn ghost"
+                    key={question.id}
+                    onClick={() => selectQuestion(question.id)}
+                  >
+                    {getCategoryEmoji(question.category)} {question.text}
+                  </button>
+                ))}
                 <div className="section">
-                  <h3>Custom questions</h3>
+                  <h3>Add a custom question for this round</h3>
                   <p>
-                    Add up to 20 questions from lobby or while picking a round
-                    question.
+                    It will be added below the current options and will not be
+                    auto-selected.
                   </p>
                   <form className="stack" onSubmit={submitCustomQuestion}>
                     <textarea
@@ -253,53 +279,6 @@ export const HostPage = () => {
                     </button>
                   </form>
                 </div>
-
-                <button
-                  className="btn"
-                  onClick={startGame}
-                  disabled={state.playerCount === 0}
-                >
-                  Start game
-                </button>
-              </div>
-            )}
-
-            {state.phase === "host_pick" && (
-              <div className="stack">
-                <h2>Select one question</h2>
-                <div className="section">
-                  <h3>Add a custom question for this round</h3>
-                  <form className="stack" onSubmit={submitCustomQuestion}>
-                    <textarea
-                      value={customQuestionText}
-                      onChange={(e) => setCustomQuestionText(e.target.value)}
-                      placeholder="Add custom question"
-                      maxLength={120}
-                    />
-                    <select
-                      value={customCategory}
-                      onChange={(e) =>
-                        setCustomCategory(e.target.value as Category)
-                      }
-                    >
-                      <option value="safe">🟢 safe</option>
-                      <option value="fun">😄 fun</option>
-                      <option value="spicy">🌶️ spicy</option>
-                    </select>
-                    <button className="btn" type="submit">
-                      Add custom question
-                    </button>
-                  </form>
-                </div>
-                {state.questionOptions.map((question) => (
-                  <button
-                    className="btn ghost"
-                    key={question.id}
-                    onClick={() => selectQuestion(question.id)}
-                  >
-                    {getCategoryEmoji(question.category)} {question.text}
-                  </button>
-                ))}
               </div>
             )}
 
@@ -446,30 +425,35 @@ export const HostPage = () => {
               <div className="stack">
                 <h2>Leaderboard</h2>
                 <ol className="leaderboard-grid">
-                  {leaderboardEntries
+                  {leaderboardRevealOrder
                     .slice(0, leaderboardRevealCount)
-                    .map((entry, idx) => (
-                      <li
-                        key={entry.id}
-                        className={`leaderboard-card ${
-                          idx === 0
-                            ? "place-1"
-                            : idx === 1
-                              ? "place-2"
-                              : idx === 2
-                                ? "place-3"
-                                : ""
-                        }`}
-                      >
-                        <div className="leaderboard-main">
-                          <span className="leaderboard-rank">#{idx + 1}</span>
-                          <span className="leaderboard-name">{entry.name}</span>
-                        </div>
-                        <span className="leaderboard-score">
-                          {entry.score} pts
-                        </span>
-                      </li>
-                    ))}
+                    .map((entry, idx) => {
+                      const rank = leaderboardRankById.get(entry.id) ?? idx + 1;
+                      return (
+                        <li
+                          key={entry.id}
+                          className={`leaderboard-card ${
+                            rank === 1
+                              ? "place-1"
+                              : rank === 2
+                                ? "place-2"
+                                : rank === 3
+                                  ? "place-3"
+                                  : ""
+                          }`}
+                        >
+                          <div className="leaderboard-main">
+                            <span className="leaderboard-rank">#{rank}</span>
+                            <span className="leaderboard-name">
+                              {entry.name}
+                            </span>
+                          </div>
+                          <span className="leaderboard-score">
+                            {entry.score} pts
+                          </span>
+                        </li>
+                      );
+                    })}
                 </ol>
                 <button className="btn" onClick={continueFlow}>
                   {leaderboardRevealCount < leaderboardEntries.length

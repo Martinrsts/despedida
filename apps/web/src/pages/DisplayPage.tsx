@@ -54,7 +54,7 @@ export const DisplayPage = () => {
     if (leaderboardRevealCount < total) {
       const timer = setTimeout(() => {
         setLeaderboardRevealCount((prev) => prev + 1);
-      }, 600);
+      }, 750);
       return () => clearTimeout(timer);
     }
   }, [leaderboardRevealCount, state]);
@@ -98,6 +98,10 @@ export const DisplayPage = () => {
   const visibleRevealCount = Math.ceil(revealStep / 2);
   const statusRevealCount = Math.floor(revealStep / 2);
   const leaderboardEntries = state?.leaderboard || [];
+  const leaderboardRankById = new Map(
+    leaderboardEntries.map((entry, index) => [entry.id, index + 1]),
+  );
+  const leaderboardRevealOrder = [...leaderboardEntries].reverse();
   const latestStatusEntry =
     statusRevealCount > 0 ? revealAnswers[statusRevealCount - 1] : undefined;
   const showFunnyScreenBurst = Boolean(latestStatusEntry?.isFunny);
@@ -237,30 +241,35 @@ export const DisplayPage = () => {
               <>
                 <h2>Leaderboard</h2>
                 <ol className="leaderboard-grid leaderboard-grid-display">
-                  {leaderboardEntries
+                  {leaderboardRevealOrder
                     .slice(0, leaderboardRevealCount)
-                    .map((entry, idx) => (
-                      <li
-                        key={entry.id}
-                        className={`leaderboard-card ${
-                          idx === 0
-                            ? "place-1"
-                            : idx === 1
-                              ? "place-2"
-                              : idx === 2
-                                ? "place-3"
-                                : ""
-                        }`}
-                      >
-                        <div className="leaderboard-main">
-                          <span className="leaderboard-rank">#{idx + 1}</span>
-                          <span className="leaderboard-name">{entry.name}</span>
-                        </div>
-                        <span className="leaderboard-score">
-                          {entry.score} pts
-                        </span>
-                      </li>
-                    ))}
+                    .map((entry, idx) => {
+                      const rank = leaderboardRankById.get(entry.id) ?? idx + 1;
+                      return (
+                        <li
+                          key={entry.id}
+                          className={`leaderboard-card ${
+                            rank === 1
+                              ? "place-1"
+                              : rank === 2
+                                ? "place-2"
+                                : rank === 3
+                                  ? "place-3"
+                                  : ""
+                          }`}
+                        >
+                          <div className="leaderboard-main">
+                            <span className="leaderboard-rank">#{rank}</span>
+                            <span className="leaderboard-name">
+                              {entry.name}
+                            </span>
+                          </div>
+                          <span className="leaderboard-score">
+                            {entry.score} pts
+                          </span>
+                        </li>
+                      );
+                    })}
                 </ol>
               </>
             )}
