@@ -162,7 +162,23 @@ export const PlayerPage = () => {
               state.phase === "leaderboard") && (
               <div className="stack">
                 <p>Waiting for results...</p>
-                <p>Check the main screen.</p>
+                <div
+                  className="display-loading-cue"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span className="display-loading-emoji" aria-hidden="true">
+                    🖥️
+                  </span>
+                  <span className="display-loading-text">
+                    Check the display screen
+                    <span className="loading-dots" aria-hidden="true">
+                      <span>.</span>
+                      <span>.</span>
+                      <span>.</span>
+                    </span>
+                  </span>
+                </div>
                 <p>Your score: {state.yourScore || 0}</p>
               </div>
             )}

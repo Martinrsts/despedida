@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { GameState } from "../lib/types";
@@ -10,14 +10,16 @@ export const DisplayPage = () => {
   const [state, setState] = useState<GameState | null>(null);
   const [error, setError] = useState("");
   const [secondsLeft, setSecondsLeft] = useState<number>(25);
-  const [revealedCount, setRevealedCount] = useState(0);
+  const [revealStep, setRevealStep] = useState(0);
+  const previousPhaseRef = useRef<GameState["phase"] | null>(null);
 
   useEffect(() => {
     const onState = (payload: GameState) => {
       setState(payload);
-      if (payload.phase === "reveal") {
-        setRevealedCount(0);
+      if (payload.phase === "reveal" && previousPhaseRef.current !== "reveal") {
+        setRevealStep(0);
       }
+      previousPhaseRef.current = payload.phase;
     };
 
     socket.on("state_sync", onState);
@@ -27,16 +29,16 @@ export const DisplayPage = () => {
   }, [socket]);
 
   useEffect(() => {
-    if (
-      state?.phase === "reveal" &&
-      revealedCount < (state.revealedAnswers?.length || 0)
-    ) {
+    if (!state || state.phase !== "reveal") return;
+
+    const maxSteps = (state.revealedAnswers?.length || 0) * 2;
+    if (revealStep < maxSteps) {
       const timer = setTimeout(() => {
-        setRevealedCount((prev) => prev + 1);
-      }, 800);
+        setRevealStep((prev) => prev + 1);
+      }, 700);
       return () => clearTimeout(timer);
     }
-  }, [revealedCount, state?.phase, state?.revealedAnswers?.length]);
+  }, [revealStep, state]);
 
   useEffect(() => {
     if (!state?.timerEndsAt || state.phase !== "answering") {
@@ -72,6 +74,10 @@ export const DisplayPage = () => {
       },
     );
   };
+
+  const revealAnswers = state?.revealedAnswers || [];
+  const visibleRevealCount = Math.ceil(revealStep / 2);
+  const statusRevealCount = Math.floor(revealStep / 2);
 
   return (
     <div className="page display-page">
@@ -133,11 +139,17 @@ export const DisplayPage = () => {
             {state.phase === "anon_answers" && (
               <>
                 <h2>Anonymous answers</h2>
-                <ul className="big-list">
+                <div className="anon-grid anon-grid-display">
                   {state.anonymousAnswers.map((answer, idx) => (
-                    <li key={`${answer}-${idx}`}>{answer}</li>
+                    <div
+                      className="anon-card anon-card-display"
+                      key={`${answer}-${idx}`}
+                    >
+                      <span className="anon-index">#{idx + 1}</span>
+                      <p className="anon-text anon-text-display">{answer}</p>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </>
             )}
 
@@ -149,8 +161,8 @@ export const DisplayPage = () => {
               <>
                 <h2>Who wrote what?</h2>
                 <ul className="big-list reveal-list">
-                  {(state.revealedAnswers || [])
-                    .slice(0, revealedCount)
+                  {revealAnswers
+                    .slice(0, visibleRevealCount)
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
@@ -162,11 +174,13 @@ export const DisplayPage = () => {
                         <span className="reveal-answer-big">
                           <strong>{entry.playerName}</strong>: {entry.answer}
                         </span>
-                        <span
-                          className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
-                        >
-                          {entry.isCorrect ? "✓ CORRECT" : "✗ INCORRECT"}
-                        </span>
+                        {idx < statusRevealCount && (
+                          <span
+                            className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
+                          >
+                            {entry.isCorrect ? "✓ CORRECT" : "✗ INCORRECT"}
+                          </span>
+                        )}
                       </li>
                     ))}
                 </ul>

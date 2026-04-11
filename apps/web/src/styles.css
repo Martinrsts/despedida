@@ -110,6 +110,34 @@
   }
 }
 
+@keyframes screenGlow {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 0 rgba(45, 76, 200, 0));
+  }
+  50% {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 4px 10px rgba(45, 76, 200, 0.35));
+  }
+}
+
+@keyframes dotBlink {
+  0%,
+  20% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -478,6 +506,103 @@ a:hover {
   font-weight: 700;
 }
 
+.display-loading-cue {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 76, 200, 0.12),
+    rgba(93, 79, 201, 0.12)
+  );
+  border: 1px solid rgba(45, 76, 200, 0.25);
+}
+
+.display-loading-emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+  animation: screenGlow 1.2s ease-in-out infinite;
+}
+
+.display-loading-text {
+  font-weight: 600;
+  color: #2b3560;
+}
+
+.loading-dots {
+  display: inline-flex;
+  min-width: 1.6em;
+}
+
+.loading-dots span {
+  animation: dotBlink 1.2s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.anon-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.anon-grid-display {
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.anon-card {
+  position: relative;
+  border-radius: 14px;
+  padding: 16px;
+  border: 2px solid #dbe4ff;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(241, 245, 255, 0.92)
+  );
+  box-shadow: 0 8px 20px rgba(45, 76, 200, 0.1);
+  animation: slideUp 0.35s ease-out;
+}
+
+.anon-card-display {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.anon-index {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334083;
+  background: linear-gradient(135deg, #dbe4ff, #f2ddff);
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+
+.anon-text {
+  margin: 0;
+  color: #26314a;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.anon-text-display {
+  font-size: 1.25rem;
+}
+
 .timer {
   font-size: 1.3rem;
   font-weight: 700;
@@ -582,5 +707,10 @@ a:hover {
 
   .timer.large {
     font-size: 2.8rem;
+  }
+
+  .anon-grid,
+  .anon-grid-display {
+    grid-template-columns: 1fr;
   }
 }

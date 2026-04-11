@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { Category, GameState } from "../lib/types";
@@ -19,7 +19,8 @@ export const HostPage = () => {
   );
 
   const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
-  const [revealedCount, setRevealedCount] = useState(0);
+  const [revealStep, setRevealStep] = useState(0);
+  const previousPhaseRef = useRef<GameState["phase"] | null>(null);
 
   useEffect(() => {
     const onState = (payload: GameState) => {
@@ -28,9 +29,10 @@ export const HostPage = () => {
       if (payload.phase !== "host_judging") {
         setSelectedCorrectIds([]);
       }
-      if (payload.phase === "reveal") {
-        setRevealedCount(0);
+      if (payload.phase === "reveal" && previousPhaseRef.current !== "reveal") {
+        setRevealStep(0);
       }
+      previousPhaseRef.current = payload.phase;
     };
 
     socket.on("state_sync", onState);
@@ -40,16 +42,16 @@ export const HostPage = () => {
   }, [socket]);
 
   useEffect(() => {
-    if (
-      state?.phase === "reveal" &&
-      revealedCount < (state.revealedAnswers?.length || 0)
-    ) {
+    if (!state || state.phase !== "reveal") return;
+
+    const maxSteps = (state.revealedAnswers?.length || 0) * 2;
+    if (revealStep < maxSteps) {
       const timer = setTimeout(() => {
-        setRevealedCount((prev) => prev + 1);
-      }, 800);
+        setRevealStep((prev) => prev + 1);
+      }, 700);
       return () => clearTimeout(timer);
     }
-  }, [revealedCount, state?.phase, state?.revealedAnswers?.length]);
+  }, [revealStep, state]);
 
   const joinAsHost = (code?: string) => {
     socket.emit(
@@ -136,6 +138,11 @@ export const HostPage = () => {
   const continueFlow = () => {
     socket.emit("host_continue", { roomCode });
   };
+
+  const revealAnswers = state?.revealedAnswers || [];
+  const visibleRevealCount = Math.ceil(revealStep / 2);
+  const statusRevealCount = Math.floor(revealStep / 2);
+  const maxRevealSteps = revealAnswers.length * 2;
 
   return (
     <div className="page host-page">
@@ -248,11 +255,15 @@ export const HostPage = () => {
             {state.phase === "anon_answers" && (
               <div className="stack">
                 <h2>Anonymous answers</h2>
-                <ul>
+                <p>Review all responses before choosing the correct ones.</p>
+                <div className="anon-grid">
                   {state.anonymousAnswers.map((answer, idx) => (
-                    <li key={`${answer}-${idx}`}>{answer}</li>
+                    <div className="anon-card" key={`${answer}-${idx}`}>
+                      <span className="anon-index">#{idx + 1}</span>
+                      <p className="anon-text">{answer}</p>
+                    </div>
                   ))}
-                </ul>
+                </div>
                 <button className="btn" onClick={continueFlow}>
                   Judge answers
                 </button>
@@ -304,8 +315,8 @@ export const HostPage = () => {
               <div className="stack">
                 <h2>Reveal</h2>
                 <ul className="reveal-list">
-                  {(state.revealedAnswers || [])
-                    .slice(0, revealedCount)
+                  {revealAnswers
+                    .slice(0, visibleRevealCount)
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
@@ -317,23 +328,23 @@ export const HostPage = () => {
                         <span className="reveal-answer">
                           {entry.playerName}: {entry.answer}
                         </span>
-                        <span
-                          className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
-                        >
-                          {entry.isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                        </span>
+                        {idx < statusRevealCount && (
+                          <span
+                            className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
+                          >
+                            {entry.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                          </span>
+                        )}
                       </li>
                     ))}
                 </ul>
                 <button
                   className="btn"
                   onClick={continueFlow}
-                  disabled={
-                    revealedCount < (state.revealedAnswers?.length || 0)
-                  }
+                  disabled={revealStep < maxRevealSteps}
                 >
-                  {revealedCount < (state.revealedAnswers?.length || 0)
-                    ? `Showing ${revealedCount}/${state.revealedAnswers?.length}...`
+                  {revealStep < maxRevealSteps
+                    ? `Showing ${statusRevealCount}/${revealAnswers.length}...`
                     : "Show leaderboard"}
                 </button>
               </div>
