@@ -7,8 +7,8 @@ import { DisplayPage } from "./pages/DisplayPage";
 import "./styles.css";
 
 const Home = () => (
-  <div className="page">
-    <div className="card">
+  <div className="page home-page">
+    <div className="card home-card">
       <h1>Know The Groom</h1>
       <p>Choose your role to join the game room.</p>
       <div className="actions">

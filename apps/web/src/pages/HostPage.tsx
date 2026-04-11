@@ -121,8 +121,8 @@ export const HostPage = () => {
   };
 
   return (
-    <div className="page">
-      <div className="card">
+    <div className="page host-page">
+      <div className="card host-card">
         <div className="top-nav">
           <Link to="/">Back</Link>
         </div>

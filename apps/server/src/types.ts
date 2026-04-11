@@ -34,6 +34,7 @@ export interface RoundState {
   selectedQuestion?: Question;
   answers: Record<string, string>;
   selectedCorrectPlayerIds: string[];
+  expectedAnswerPlayerIds: string[];
 }
 
 export interface Room {

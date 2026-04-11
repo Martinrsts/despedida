@@ -92,8 +92,8 @@ export const PlayerPage = () => {
   };
 
   return (
-    <div className="page">
-      <div className="card">
+    <div className="page player-page">
+      <div className="card player-card">
         <div className="top-nav">
           <Link to="/">Back</Link>
         </div>

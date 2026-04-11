@@ -141,6 +141,20 @@ const clearAnswerTimer = (room: Room): void => {
   room.timerEndsAt = undefined;
 };
 
+const allExpectedPlayersAnswered = (room: Room): boolean => {
+  if (!room.currentRound) return false;
+
+  const expectedPlayerIds = room.currentRound.expectedAnswerPlayerIds;
+
+  if (expectedPlayerIds.length === 0) {
+    return false;
+  }
+
+  return expectedPlayerIds.every((playerId) =>
+    Boolean(room.currentRound?.answers[playerId]),
+  );
+};
+
 const buildAwards = (
   room: Room,
 ): { bestFriend: string; leastKnowledge: string; mostCreative: string } => {
@@ -267,6 +281,7 @@ const beginNewRound = (room: Room): void => {
     questionOptions: options,
     answers: {},
     selectedCorrectPlayerIds: [],
+    expectedAnswerPlayerIds: [],
   };
   room.phase = "host_pick";
 
@@ -281,6 +296,10 @@ const beginNewRound = (room: Room): void => {
 
 const startAnswering = (room: Room): void => {
   if (!room.currentRound?.selectedQuestion) return;
+
+  room.currentRound.expectedAnswerPlayerIds = roomPlayers(room)
+    .filter((player) => player.connected)
+    .map((player) => player.id);
 
   room.phase = "answering";
   room.timerEndsAt = Date.now() + 25000;
@@ -523,6 +542,12 @@ io.on("connection", (socket) => {
 
       room.currentRound.answers[meta.playerId] = text;
       cb?.({ ok: true });
+
+      if (allExpectedPlayersAnswered(room)) {
+        clearAnswerTimer(room);
+        room.phase = "anon_answers";
+      }
+
       emitState(room);
     },
   );
