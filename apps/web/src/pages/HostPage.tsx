@@ -340,11 +340,7 @@ export const HostPage = () => {
                   Toca en cada respuesta para marcarla como correcta, o presiona
                   😂 para un bonus de respuesta divertida, o 🍺 para hacer que
                   ese jugador pague una cerveza (Al menos una persona debe
-                  tomar).{" "}
-                  {(selectedCorrectIds.length > 0 ||
-                    selectedFunnyIds.length > 0 ||
-                    selectedBeerIds.length > 0) &&
-                    "Click confirm when ready."}
+                  tomar).
                 </p>
                 <div className="answers-container">
                   {(state.judgingAnswers || []).map((entry) => (
@@ -406,7 +402,7 @@ export const HostPage = () => {
 
             {state.phase === "reveal" && (
               <div className="stack">
-                <h2>Revelar</h2>
+                <h2>Mostrando resultados</h2>
                 <ul className="reveal-list">
                   {revealAnswers
                     .slice(0, visibleRevealCount)
@@ -443,8 +439,8 @@ export const HostPage = () => {
                   disabled={revealStep < maxRevealSteps}
                 >
                   {revealStep < maxRevealSteps
-                    ? `Showing ${statusRevealCount}/${revealAnswers.length}...`
-                    : "Show leaderboard"}
+                    ? `Revelando ${statusRevealCount}/${revealAnswers.length}...`
+                    : "Mostrar clasificación"}
                 </button>
               </div>
             )}
@@ -482,8 +478,8 @@ export const HostPage = () => {
                 </ol>
                 <button className="btn" onClick={continueFlow}>
                   {leaderboardRevealCount < leaderboardEntries.length
-                    ? `Revealing ${leaderboardRevealCount}/${leaderboardEntries.length}...`
-                    : "Next step"}
+                    ? `Revelando ${leaderboardRevealCount}/${leaderboardEntries.length}...`
+                    : "Siguiente etapa"}
                 </button>
               </div>
             )}

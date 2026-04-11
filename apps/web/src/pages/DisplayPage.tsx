@@ -328,7 +328,7 @@ export const DisplayPage = () => {
                     </div>
                   </div>
                 )}
-                <h2>Evaluación de las respuestas</h2>
+                <h2>Resultados</h2>
                 <ul className="big-list reveal-list">
                   {revealAnswers
                     .slice(0, visibleRevealCount)
@@ -353,7 +353,7 @@ export const DisplayPage = () => {
                           <span
                             className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
                           >
-                            {entry.isCorrect ? "✓ CORRECT" : "✗ INCORRECT"}
+                            {entry.isCorrect ? "✓ CORRECTO" : "✗ INCORRECTO"}
                           </span>
                         )}
                       </li>

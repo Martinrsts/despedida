@@ -56,13 +56,13 @@ const socketMeta = new Map<
 >();
 
 const PHASE_LABEL: Record<Phase, string> = {
-  lobby: "Waiting for host to start",
-  host_pick: "Host is choosing a question...",
-  answering: "Players are answering",
-  anon_answers: "Anonymous answers",
-  host_judging: "Host is selecting correct answers",
-  reveal: "Revealing authors",
-  leaderboard: "Leaderboard",
+  lobby: "Esperando que el anfitrión inicie el juego...",
+  host_pick: "El anfitrión está eligiendo una pregunta...",
+  answering: "Los jugadores están respondiendo",
+  anon_answers: "Respuestas anónimas",
+  host_judging: "El anfitrión está seleccionando las respuestas correctas",
+  reveal: "Revelando autores",
+  leaderboard: "Clasificación",
   finished: "Game finished",
 };
 
