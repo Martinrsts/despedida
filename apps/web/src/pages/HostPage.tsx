@@ -174,10 +174,10 @@ export const HostPage = () => {
   const statusRevealCount = Math.floor(revealStep / 2);
   const maxRevealSteps = revealAnswers.length * 2;
   const leaderboardEntries = state?.leaderboard || [];
-  const leaderboardRankById = new Map(
-    leaderboardEntries.map((entry, index) => [entry.id, index + 1]),
+  const leaderboardRevealStartIndex = Math.max(
+    0,
+    leaderboardEntries.length - leaderboardRevealCount,
   );
-  const leaderboardRevealOrder = [...leaderboardEntries].reverse();
 
   return (
     <div className="page host-page">
@@ -425,35 +425,32 @@ export const HostPage = () => {
               <div className="stack">
                 <h2>Leaderboard</h2>
                 <ol className="leaderboard-grid">
-                  {leaderboardRevealOrder
-                    .slice(0, leaderboardRevealCount)
-                    .map((entry, idx) => {
-                      const rank = leaderboardRankById.get(entry.id) ?? idx + 1;
-                      return (
-                        <li
-                          key={entry.id}
-                          className={`leaderboard-card ${
-                            rank === 1
-                              ? "place-1"
-                              : rank === 2
-                                ? "place-2"
-                                : rank === 3
-                                  ? "place-3"
-                                  : ""
-                          }`}
-                        >
-                          <div className="leaderboard-main">
-                            <span className="leaderboard-rank">#{rank}</span>
-                            <span className="leaderboard-name">
-                              {entry.name}
-                            </span>
-                          </div>
-                          <span className="leaderboard-score">
-                            {entry.score} pts
-                          </span>
-                        </li>
-                      );
-                    })}
+                  {leaderboardEntries.map((entry, idx) => {
+                    const revealed = idx >= leaderboardRevealStartIndex;
+                    const rank = idx + 1;
+                    return (
+                      <li
+                        key={entry.id}
+                        className={`leaderboard-card ${revealed ? "revealed" : "hidden"} ${
+                          rank === 1
+                            ? "place-1"
+                            : rank === 2
+                              ? "place-2"
+                              : rank === 3
+                                ? "place-3"
+                                : ""
+                        }`}
+                      >
+                        <div className="leaderboard-main">
+                          <span className="leaderboard-rank">#{rank}</span>
+                          <span className="leaderboard-name">{entry.name}</span>
+                        </div>
+                        <span className="leaderboard-score">
+                          {entry.score} pts
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ol>
                 <button className="btn" onClick={continueFlow}>
                   {leaderboardRevealCount < leaderboardEntries.length

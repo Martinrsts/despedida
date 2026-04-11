@@ -215,6 +215,55 @@
     transform: translateY(0) scale(1);
   }
 }
+
+@keyframes ceremonyRise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spotlightSweep {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+@keyframes ceremonyConfettiFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) rotate(0deg) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120vh) rotate(320deg) scale(1);
+  }
+}
+
+@keyframes winnerPulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.03);
+  }
+}
 * {
   box-sizing: border-box;
 }
@@ -848,7 +897,14 @@ a:hover {
   font-weight: 700;
   font-size: 0.9rem;
   animation: statusPulse 0.7s ease-out;
-  width: fit-content;
+}
+
+.leaderboard-card.revealed {
+  animation: leaderboardEntryIn 0.45s ease-out;
+}
+
+.leaderboard-card.hidden {
+  visibility: hidden;
 }
 
 .reveal-status.correct {
@@ -1020,6 +1076,62 @@ a:hover {
   animation-delay: 0.18s;
 }
 
+.funny-screen-confetti.f7 {
+  left: 6%;
+  top: 14%;
+  background: #ff6e9f;
+  animation-delay: 0.06s;
+}
+
+.funny-screen-confetti.f8 {
+  left: 18%;
+  top: 4%;
+  background: #43e97b;
+  animation-delay: 0.2s;
+}
+
+.funny-screen-confetti.f9 {
+  left: 33%;
+  top: 9%;
+  background: #ffd93d;
+  animation-delay: 0.11s;
+}
+
+.funny-screen-confetti.f10 {
+  left: 48%;
+  top: 3%;
+  background: #5dade2;
+  animation-delay: 0.16s;
+}
+
+.funny-screen-confetti.f11 {
+  left: 63%;
+  top: 13%;
+  background: #ff9f43;
+  animation-delay: 0.09s;
+}
+
+.funny-screen-confetti.f12 {
+  left: 77%;
+  top: 4%;
+  background: #8b7fff;
+  animation-delay: 0.22s;
+}
+
+.funny-screen-confetti.f13 {
+  left: 91%;
+  top: 11%;
+  background: #ff4757;
+  animation-delay: 0.13s;
+}
+
+.funny-screen-confetti.f14 {
+  left: 54%;
+  top: 16%;
+  background: #6bcf7f;
+  animation-delay: 0.25s;
+}
+
 .funny-screen-emoji {
   position: absolute;
   font-size: 2.4rem;
@@ -1050,6 +1162,219 @@ a:hover {
   animation-delay: 0.08s;
 }
 
+.funny-screen-emoji.e5 {
+  left: 8%;
+  top: 54%;
+  animation-delay: 0.2s;
+}
+
+.funny-screen-emoji.e6 {
+  left: 27%;
+  top: 66%;
+  animation-delay: 0.28s;
+}
+
+.funny-screen-emoji.e7 {
+  left: 50%;
+  top: 52%;
+  animation-delay: 0.24s;
+}
+
+.funny-screen-emoji.e8 {
+  left: 72%;
+  top: 67%;
+  animation-delay: 0.3s;
+}
+
+.funny-screen-emoji.e9 {
+  left: 88%;
+  top: 48%;
+  animation-delay: 0.18s;
+}
+
+.funny-screen-emoji.e10 {
+  left: 38%;
+  top: 70%;
+  animation-delay: 0.34s;
+}
+
+.final-ceremony {
+  position: relative;
+  width: 100%;
+  padding: 22px 12px 8px;
+  border-radius: 18px;
+  background: radial-gradient(
+    circle at top,
+    rgba(255, 245, 186, 0.45),
+    rgba(255, 255, 255, 0.55)
+  );
+  overflow: hidden;
+  animation: ceremonyRise 0.6s ease-out;
+}
+
+.final-ceremony::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+  animation: spotlightSweep 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ceremony-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ceremony-confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: ceremonyConfettiFall 2.2s linear infinite;
+}
+
+.ceremony-confetti.c1 {
+  left: 8%;
+  top: -8%;
+  background: #ffd93d;
+}
+.ceremony-confetti.c2 {
+  left: 21%;
+  top: -4%;
+  background: #ff6e9f;
+  animation-delay: 0.3s;
+}
+.ceremony-confetti.c3 {
+  left: 35%;
+  top: -10%;
+  background: #5dade2;
+  animation-delay: 0.55s;
+}
+.ceremony-confetti.c4 {
+  left: 48%;
+  top: -6%;
+  background: #6bcf7f;
+  animation-delay: 0.85s;
+}
+.ceremony-confetti.c5 {
+  left: 60%;
+  top: -12%;
+  background: #8b7fff;
+  animation-delay: 1.15s;
+}
+.ceremony-confetti.c6 {
+  left: 73%;
+  top: -7%;
+  background: #ff9f43;
+  animation-delay: 1.35s;
+}
+.ceremony-confetti.c7 {
+  left: 85%;
+  top: -9%;
+  background: #ff4757;
+  animation-delay: 1.6s;
+}
+.ceremony-confetti.c8 {
+  left: 93%;
+  top: -5%;
+  background: #43e97b;
+  animation-delay: 1.85s;
+}
+
+.ceremony-title {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.podium-stage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 14px;
+}
+
+.podium-column {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  animation: ceremonyRise 0.55s ease-out;
+}
+
+.podium-column.rank-1 {
+  animation-delay: 0.15s;
+}
+.podium-column.rank-2 {
+  animation-delay: 0s;
+}
+.podium-column.rank-3 {
+  animation-delay: 0.3s;
+}
+
+.podium-player {
+  font-weight: 700;
+  color: #22304d;
+  text-align: center;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.podium-score {
+  font-weight: 600;
+  color: #2f4a86;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+
+.podium-block {
+  width: 100%;
+  border-radius: 14px 14px 8px 8px;
+  border: 2px solid #dde5ff;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(222, 232, 255, 0.95)
+  );
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+}
+
+.podium-column.rank-1 .podium-block {
+  min-height: 150px;
+  border-color: #ffd93d;
+  background: linear-gradient(180deg, #fff8cf, #ffe790);
+  animation: winnerPulse 1.9s ease-in-out infinite;
+}
+
+.podium-column.rank-2 .podium-block {
+  min-height: 118px;
+  background: linear-gradient(180deg, #f7faff, #dce4f7);
+}
+
+.podium-column.rank-3 .podium-block {
+  min-height: 95px;
+  background: linear-gradient(180deg, #fff3e6, #f5d7b7);
+}
+
+.podium-medal {
+  font-size: 1.8rem;
+}
+
+.podium-rank {
+  font-weight: 800;
+  color: #2a3766;
+}
+
 @media (max-width: 640px) {
   .card {
     padding: 14px;
@@ -1070,5 +1395,21 @@ a:hover {
   .anon-grid,
   .anon-grid-display {
     grid-template-columns: 1fr;
+  }
+
+  .podium-stage {
+    gap: 8px;
+  }
+
+  .podium-column.rank-1 .podium-block {
+    min-height: 120px;
+  }
+
+  .podium-column.rank-2 .podium-block {
+    min-height: 98px;
+  }
+
+  .podium-column.rank-3 .podium-block {
+    min-height: 84px;
   }
 }

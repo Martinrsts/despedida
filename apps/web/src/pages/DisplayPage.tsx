@@ -98,10 +98,11 @@ export const DisplayPage = () => {
   const visibleRevealCount = Math.ceil(revealStep / 2);
   const statusRevealCount = Math.floor(revealStep / 2);
   const leaderboardEntries = state?.leaderboard || [];
-  const leaderboardRankById = new Map(
-    leaderboardEntries.map((entry, index) => [entry.id, index + 1]),
+  const leaderboardRevealStartIndex = Math.max(
+    0,
+    leaderboardEntries.length - leaderboardRevealCount,
   );
-  const leaderboardRevealOrder = [...leaderboardEntries].reverse();
+  const finalTopThree = leaderboardEntries.slice(0, 3);
   const latestStatusEntry =
     statusRevealCount > 0 ? revealAnswers[statusRevealCount - 1] : undefined;
   const showFunnyScreenBurst = Boolean(latestStatusEntry?.isFunny);
@@ -197,10 +198,24 @@ export const DisplayPage = () => {
                     <span className="funny-screen-confetti f4" />
                     <span className="funny-screen-confetti f5" />
                     <span className="funny-screen-confetti f6" />
+                    <span className="funny-screen-confetti f7" />
+                    <span className="funny-screen-confetti f8" />
+                    <span className="funny-screen-confetti f9" />
+                    <span className="funny-screen-confetti f10" />
+                    <span className="funny-screen-confetti f11" />
+                    <span className="funny-screen-confetti f12" />
+                    <span className="funny-screen-confetti f13" />
+                    <span className="funny-screen-confetti f14" />
                     <span className="funny-screen-emoji e1">😂</span>
                     <span className="funny-screen-emoji e2">🤣</span>
                     <span className="funny-screen-emoji e3">😆</span>
                     <span className="funny-screen-emoji e4">😂</span>
+                    <span className="funny-screen-emoji e5">🤣</span>
+                    <span className="funny-screen-emoji e6">😂</span>
+                    <span className="funny-screen-emoji e7">😆</span>
+                    <span className="funny-screen-emoji e8">🤣</span>
+                    <span className="funny-screen-emoji e9">😂</span>
+                    <span className="funny-screen-emoji e10">😆</span>
                   </div>
                 )}
                 <h2>Who wrote what?</h2>
@@ -241,49 +256,76 @@ export const DisplayPage = () => {
               <>
                 <h2>Leaderboard</h2>
                 <ol className="leaderboard-grid leaderboard-grid-display">
-                  {leaderboardRevealOrder
-                    .slice(0, leaderboardRevealCount)
-                    .map((entry, idx) => {
-                      const rank = leaderboardRankById.get(entry.id) ?? idx + 1;
-                      return (
-                        <li
-                          key={entry.id}
-                          className={`leaderboard-card ${
-                            rank === 1
-                              ? "place-1"
-                              : rank === 2
-                                ? "place-2"
-                                : rank === 3
-                                  ? "place-3"
-                                  : ""
-                          }`}
-                        >
-                          <div className="leaderboard-main">
-                            <span className="leaderboard-rank">#{rank}</span>
-                            <span className="leaderboard-name">
-                              {entry.name}
-                            </span>
-                          </div>
-                          <span className="leaderboard-score">
-                            {entry.score} pts
-                          </span>
-                        </li>
-                      );
-                    })}
+                  {leaderboardEntries.map((entry, idx) => {
+                    const revealed = idx >= leaderboardRevealStartIndex;
+                    const rank = idx + 1;
+                    return (
+                      <li
+                        key={entry.id}
+                        className={`leaderboard-card ${revealed ? "revealed" : "hidden"} ${
+                          rank === 1
+                            ? "place-1"
+                            : rank === 2
+                              ? "place-2"
+                              : rank === 3
+                                ? "place-3"
+                                : ""
+                        }`}
+                      >
+                        <div className="leaderboard-main">
+                          <span className="leaderboard-rank">#{rank}</span>
+                          <span className="leaderboard-name">{entry.name}</span>
+                        </div>
+                        <span className="leaderboard-score">
+                          {entry.score} pts
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ol>
               </>
             )}
 
             {state.phase === "finished" && (
               <>
-                <h2>Final Podium</h2>
-                <ol className="big-list">
-                  {(state.leaderboard || []).slice(0, 3).map((entry) => (
-                    <li key={entry.id}>
-                      {entry.name} - {entry.score}
-                    </li>
-                  ))}
-                </ol>
+                <div className="final-ceremony">
+                  <div className="ceremony-overlay" aria-hidden="true">
+                    <span className="ceremony-confetti c1" />
+                    <span className="ceremony-confetti c2" />
+                    <span className="ceremony-confetti c3" />
+                    <span className="ceremony-confetti c4" />
+                    <span className="ceremony-confetti c5" />
+                    <span className="ceremony-confetti c6" />
+                    <span className="ceremony-confetti c7" />
+                    <span className="ceremony-confetti c8" />
+                  </div>
+
+                  <h2 className="ceremony-title">Grand Final Podium</h2>
+
+                  <div className="podium-stage">
+                    {[1, 0, 2].map((index) => {
+                      const entry = finalTopThree[index];
+                      if (!entry) return null;
+
+                      const rank = index + 1;
+                      return (
+                        <div
+                          key={entry.id}
+                          className={`podium-column rank-${rank}`}
+                        >
+                          <div className="podium-player">{entry.name}</div>
+                          <div className="podium-score">{entry.score} pts</div>
+                          <div className="podium-block">
+                            <span className="podium-medal" aria-hidden="true">
+                              {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
+                            </span>
+                            <span className="podium-rank">#{rank}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </>
             )}
           </div>
