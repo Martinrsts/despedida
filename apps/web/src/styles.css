@@ -537,16 +537,16 @@ a:hover {
 
 .answer-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 16px;
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid #e0e7ff;
   border-radius: 14px;
-  cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  flex-direction: column;
 }
 
 .answer-card::before {
@@ -594,6 +594,25 @@ a:hover {
   background: white;
 }
 
+.answer-card-main {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.score-current {
+  flex-shrink: 0;
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  color: #23407e;
+  background: rgba(45, 76, 200, 0.1);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
 .answer-card:hover .answer-checkbox {
   border-color: var(--primary);
 }
@@ -613,18 +632,63 @@ a:hover {
   font-weight: 500;
 }
 
-.funny-toggle {
+.score-picker {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.score-toggle {
+  border: 1px solid #d7def0;
+  border-radius: 999px;
+  padding: 8px 0;
+  background: #f7f9ff;
+  color: #314164;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.score-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(45, 76, 200, 0.12);
+}
+
+.score-toggle.selected {
+  background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 5px 12px rgba(45, 76, 200, 0.24);
+}
+
+.bonus-row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.funny-toggle,
+.beer-toggle {
   border: 0;
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: #ffe7c2;
   cursor: pointer;
   font-size: 1rem;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
     background 0.2s ease;
+}
+
+.funny-toggle {
+  background: #ffe7c2;
 }
 
 .funny-toggle:hover {
@@ -638,17 +702,7 @@ a:hover {
 }
 
 .beer-toggle {
-  border: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
   background: #fff0c8;
-  cursor: pointer;
-  font-size: 1rem;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
 }
 
 .beer-toggle:hover {
@@ -659,50 +713,6 @@ a:hover {
 .beer-toggle.selected {
   background: linear-gradient(135deg, #ffc445 0%, #ff8a26 100%);
   box-shadow: 0 5px 12px rgba(255, 138, 38, 0.45);
-}
-
-.judging-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.selection-counter {
-  background: linear-gradient(
-    135deg,
-    var(--accent-pink) 0%,
-    var(--accent-yellow) 100%
-  );
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.judging-counters {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.funny-counter {
-  background: linear-gradient(135deg, #ff9f43 0%, #ff6e9f 100%);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.beer-counter {
-  background: linear-gradient(135deg, #ffc445 0%, #ff8a26 100%);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .display-loading-cue {
@@ -970,6 +980,18 @@ a:hover {
 .reveal-answer-big {
   display: block;
   word-break: break-word;
+}
+
+.score-reveal-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2d4cc8 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  box-shadow: 0 6px 14px rgba(45, 76, 200, 0.16);
 }
 
 .reveal-status {
@@ -1284,7 +1306,7 @@ a:hover {
 .beer-screen-banner {
   position: absolute;
   left: 50%;
-  bottom: 14%;
+  top: 14%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, #3b2608 0%, #6e420d 100%);
   color: #ffe8b5;

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { getSocket } from "../lib/socket";
 import { GameState } from "../lib/types";
 
-const ANSWER_DURATION_MS = 25000;
+const ANSWER_DURATION_MS = 45000;
 
 export const PlayerPage = () => {
   const socket = useMemo(() => getSocket(), []);

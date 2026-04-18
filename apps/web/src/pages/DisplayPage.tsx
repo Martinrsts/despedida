@@ -12,7 +12,7 @@ import { GameState } from "../lib/types";
 import { getCategoryEmoji } from "../lib/categoryEmoji";
 
 const DEFAULT_TOTAL_ROUNDS = 8;
-const ANSWER_DURATION_MS = 25000;
+const ANSWER_DURATION_MS = 45000;
 
 export const DisplayPage = () => {
   const socket = useMemo(() => getSocket(), []);
@@ -263,7 +263,20 @@ export const DisplayPage = () => {
             )}
 
             {state.phase === "host_judging" && (
-              <h2>Anfitrión está seleccionando las respuestas correctas...</h2>
+              <>
+                <h2>Respuestas</h2>
+                <p>Anfitrión está asignando puntajes...</p>
+                <div className="anon-grid anon-grid-display">
+                  {state.anonymousAnswers.map((answer, idx) => (
+                    <div
+                      className="anon-card anon-card-display"
+                      key={`${answer}-${idx}`}
+                    >
+                      <p className="anon-text anon-text-display">{answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             {state.phase === "reveal" && (
@@ -335,13 +348,7 @@ export const DisplayPage = () => {
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
-                        className={`reveal-item big-reveal ${
-                          idx < statusRevealCount
-                            ? entry.isCorrect
-                              ? "correct"
-                              : "incorrect"
-                            : "pending"
-                        }`}
+                        className={`reveal-item big-reveal ${idx < statusRevealCount ? "revealed" : "pending"}`}
                         style={{
                           animationDelay: `${idx * 0.1}s`,
                         }}
@@ -350,10 +357,9 @@ export const DisplayPage = () => {
                           <strong>{entry.playerName}</strong>: {entry.answer}
                         </span>
                         {idx < statusRevealCount && (
-                          <span
-                            className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
-                          >
-                            {entry.isCorrect ? "✓ CORRECTO" : "✗ INCORRECTO"}
+                          <span className="score-reveal-badge">
+                            {entry.score > 0 ? "+" : ""}
+                            {entry.score} → {entry.pointsAwarded} pts
                           </span>
                         )}
                       </li>

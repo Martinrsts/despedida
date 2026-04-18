@@ -6,6 +6,7 @@ import { getCategoryEmoji } from "../lib/categoryEmoji";
 
 const initialCustomCategory: Category = "fun";
 const DEFAULT_TOTAL_ROUNDS = 8;
+const REVIEW_SCORES = [-3, -2, -1, 0, 1, 2, 3];
 
 export const HostPage = () => {
   const socket = useMemo(() => getSocket(), []);
@@ -20,7 +21,7 @@ export const HostPage = () => {
   );
   const [totalRounds, setTotalRounds] = useState<number>(DEFAULT_TOTAL_ROUNDS);
 
-  const [selectedCorrectIds, setSelectedCorrectIds] = useState<string[]>([]);
+  const [answerScores, setAnswerScores] = useState<Record<string, number>>({});
   const [selectedFunnyIds, setSelectedFunnyIds] = useState<string[]>([]);
   const [selectedBeerIds, setSelectedBeerIds] = useState<string[]>([]);
   const [revealStep, setRevealStep] = useState(0);
@@ -32,7 +33,7 @@ export const HostPage = () => {
       setState(payload);
       setRoomCode(payload.roomCode);
       if (payload.phase !== "host_judging") {
-        setSelectedCorrectIds([]);
+        setAnswerScores({});
         setSelectedFunnyIds([]);
         setSelectedBeerIds([]);
       }
@@ -139,12 +140,32 @@ export const HostPage = () => {
     );
   };
 
-  const toggleCorrect = (playerId: string) => {
-    setSelectedCorrectIds((current) =>
-      current.includes(playerId)
-        ? current.filter((id) => id !== playerId)
-        : [...current, playerId],
+  const confirmCorrect = () => {
+    socket.emit(
+      "host_select_answers",
+      {
+        roomCode,
+        answerScores,
+        funnyPlayerIds: selectedFunnyIds,
+        beerPlayerIds: selectedBeerIds,
+      },
+      (ack: { ok: boolean; error?: string }) => {
+        if (!ack.ok) {
+          setError(ack.error || "Could not submit scores.");
+        }
+      },
     );
+  };
+
+  const continueFlow = () => {
+    socket.emit("host_continue", { roomCode });
+  };
+
+  const setScore = (playerId: string, score: number) => {
+    setAnswerScores((current) => ({
+      ...current,
+      [playerId]: score,
+    }));
   };
 
   const toggleFunny = (playerId: string) => {
@@ -153,27 +174,6 @@ export const HostPage = () => {
         ? current.filter((id) => id !== playerId)
         : [...current, playerId],
     );
-  };
-
-  const confirmCorrect = () => {
-    socket.emit(
-      "host_select_answers",
-      {
-        roomCode,
-        correctPlayerIds: selectedCorrectIds,
-        funnyPlayerIds: selectedFunnyIds,
-        beerPlayerIds: selectedBeerIds,
-      },
-      (ack: { ok: boolean; error?: string }) => {
-        if (!ack.ok) {
-          setError(ack.error || "Could not submit correct answers.");
-        }
-      },
-    );
-  };
-
-  const continueFlow = () => {
-    socket.emit("host_continue", { roomCode });
   };
 
   const toggleBeer = (playerId: string) => {
@@ -193,6 +193,10 @@ export const HostPage = () => {
     0,
     leaderboardEntries.length - leaderboardRevealCount,
   );
+  const judgingAnswers = state?.judgingAnswers || [];
+  const allAnswersScored =
+    judgingAnswers.length > 0 &&
+    judgingAnswers.every((entry) => answerScores[entry.playerId] !== undefined);
 
   return (
     <div className="page host-page">
@@ -335,65 +339,76 @@ export const HostPage = () => {
 
             {state.phase === "host_judging" && (
               <div className="stack">
-                <h2>Seleccionar respuestas correctas</h2>
+                <h2>Asignar puntajes</h2>
                 <p style={{ margin: "0 0 16px 0", color: "#666" }}>
-                  Toca en cada respuesta para marcarla como correcta, o presiona
-                  😂 para un bonus de respuesta divertida, o 🍺 para hacer que
-                  ese jugador pague una cerveza (Al menos una persona debe
-                  tomar).
+                  Asigna una nota de -3 a 3 a cada respuesta. Ese puntaje se
+                  convertirá en 0 a 1500 puntos.
                 </p>
                 <div className="answers-container">
-                  {(state.judgingAnswers || []).map((entry) => (
+                  {judgingAnswers.map((entry) => (
                     <div
                       key={entry.playerId}
-                      className={`answer-card ${
-                        selectedCorrectIds.includes(entry.playerId)
-                          ? "selected"
-                          : ""
-                      }`}
-                      onClick={() => toggleCorrect(entry.playerId)}
+                      className="answer-card score-card"
                     >
-                      <div className="answer-checkbox">
-                        {selectedCorrectIds.includes(entry.playerId) && "✓"}
+                      <div className="answer-card-main">
+                        <span className="answer-text">{entry.answer}</span>
+                        <span className="score-current">
+                          {answerScores[entry.playerId] === undefined
+                            ? "Sin puntaje"
+                            : `Puntaje ${answerScores[entry.playerId] > 0 ? "+" : ""}${answerScores[entry.playerId]}`}
+                        </span>
                       </div>
-                      <span className="answer-text">{entry.answer}</span>
-                      <button
-                        className={`funny-toggle ${
-                          selectedFunnyIds.includes(entry.playerId)
-                            ? "selected"
-                            : ""
-                        }`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          toggleFunny(entry.playerId);
-                        }}
-                        title="Mark as funny answer bonus"
-                        type="button"
+                      <div
+                        className="score-picker"
+                        role="group"
+                        aria-label="Asignar puntaje"
                       >
-                        😂
-                      </button>
-                      <button
-                        className={`beer-toggle ${
-                          selectedBeerIds.includes(entry.playerId)
-                            ? "selected"
-                            : ""
-                        }`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          toggleBeer(entry.playerId);
-                        }}
-                        title="Mark player to pay a beer"
-                        type="button"
-                      >
-                        🍺
-                      </button>
+                        {REVIEW_SCORES.map((score) => (
+                          <button
+                            key={score}
+                            className={`score-toggle ${
+                              answerScores[entry.playerId] === score
+                                ? "selected"
+                                : ""
+                            }`}
+                            onClick={() => setScore(entry.playerId, score)}
+                            type="button"
+                          >
+                            {score > 0 ? `+${score}` : `${score}`}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="bonus-row">
+                        <button
+                          className={`funny-toggle ${
+                            selectedFunnyIds.includes(entry.playerId)
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() => toggleFunny(entry.playerId)}
+                          type="button"
+                        >
+                          😂
+                        </button>
+                        <button
+                          className={`beer-toggle ${
+                            selectedBeerIds.includes(entry.playerId)
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() => toggleBeer(entry.playerId)}
+                          type="button"
+                        >
+                          🍺
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
                 <button
                   className="btn"
                   onClick={confirmCorrect}
-                  disabled={selectedBeerIds.length === 0}
+                  disabled={!allAnswersScored}
                 >
                   Confirmar
                 </button>
@@ -409,13 +424,7 @@ export const HostPage = () => {
                     .map((entry, idx) => (
                       <li
                         key={entry.playerId}
-                        className={`reveal-item big-reveal ${
-                          idx < statusRevealCount
-                            ? entry.isCorrect
-                              ? "correct"
-                              : "incorrect"
-                            : "pending"
-                        }`}
+                        className={`reveal-item big-reveal ${idx < statusRevealCount ? "revealed" : "pending"}`}
                         style={{
                           animationDelay: `${idx * 0.1}s`,
                         }}
@@ -424,10 +433,9 @@ export const HostPage = () => {
                           {entry.playerName}: {entry.answer}
                         </span>
                         {idx < statusRevealCount && (
-                          <span
-                            className={`reveal-status ${entry.isCorrect ? "correct" : "incorrect"}`}
-                          >
-                            {entry.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                          <span className="score-reveal-badge">
+                            {entry.score > 0 ? "+" : ""}
+                            {entry.score} → {entry.pointsAwarded} pts
                           </span>
                         )}
                       </li>

@@ -60,16 +60,19 @@ const PHASE_LABEL: Record<Phase, string> = {
   host_pick: "El anfitrión está eligiendo una pregunta...",
   answering: "Los jugadores están respondiendo",
   anon_answers: "Respuestas anónimas",
-  host_judging: "El anfitrión está seleccionando las respuestas correctas",
+  host_judging: "El anfitrión está asignando puntajes",
   reveal: "Revelando autores",
   leaderboard: "Clasificación",
   finished: "Game finished",
 };
 
-const FUNNY_ANSWER_BONUS = 50;
 const DEFAULT_TOTAL_ROUNDS = 8;
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 20;
+const MIN_REVIEW_SCORE = -3;
+const MAX_REVIEW_SCORE = 3;
+const MAX_REVIEW_POINTS = 1500;
+const FUNNY_ANSWER_BONUS = 50;
 
 const clampText = (value: string, max = 140): string =>
   value.trim().slice(0, max);
@@ -92,6 +95,18 @@ const sanitizeTotalRounds = (value?: number): number => {
   }
   const rounded = Math.round(value);
   return Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, rounded));
+};
+
+const sanitizeReviewScore = (value: number): number => {
+  const rounded = Math.round(value);
+  return Math.min(MAX_REVIEW_SCORE, Math.max(MIN_REVIEW_SCORE, rounded));
+};
+
+const reviewScoreToPoints = (value: number): number => {
+  const normalized =
+    (sanitizeReviewScore(value) - MIN_REVIEW_SCORE) /
+    (MAX_REVIEW_SCORE - MIN_REVIEW_SCORE);
+  return Math.round(normalized * MAX_REVIEW_POINTS);
 };
 
 const createRoom = (totalRounds?: number): Room => {
@@ -193,7 +208,8 @@ const baseState = (room: Room) => {
         playerId,
         playerName: room.players[playerId]?.name || "Unknown",
         answer,
-        isCorrect: (round?.selectedCorrectPlayerIds || []).includes(playerId),
+        score: round?.answerScores[playerId] ?? 0,
+        pointsAwarded: reviewScoreToPoints(round?.answerScores[playerId] ?? 0),
         isFunny: (round?.selectedFunnyPlayerIds || []).includes(playerId),
         isBeer: (round?.selectedBeerPlayerIds || []).includes(playerId),
       }),
@@ -218,6 +234,7 @@ const emitState = (room: Room): void => {
         ([playerId, answer]) => ({
           playerId,
           answer,
+          score: room.currentRound?.answerScores[playerId],
           isFunny: Boolean(
             room.currentRound?.selectedFunnyPlayerIds.includes(playerId),
           ),
@@ -274,7 +291,7 @@ const beginNewRound = (room: Room): void => {
     number: room.roundNumber,
     questionOptions: options,
     answers: {},
-    selectedCorrectPlayerIds: [],
+    answerScores: {},
     selectedFunnyPlayerIds: [],
     selectedBeerPlayerIds: [],
     expectedAnswerPlayerIds: [],
@@ -298,18 +315,18 @@ const startAnswering = (room: Room): void => {
     .map((player) => player.id);
 
   room.phase = "answering";
-  room.timerEndsAt = Date.now() + 25000;
+  room.timerEndsAt = Date.now() + 45000;
   room.answerTimeout = setTimeout(() => {
     room.phase = "anon_answers";
     room.timerEndsAt = undefined;
     room.answerTimeout = undefined;
     emitState(room);
-  }, 25000);
+  }, 45000);
 
   io.to(room.code).emit("new_round", {
     roundNumber: room.roundNumber,
     question: room.currentRound.selectedQuestion,
-    timerSeconds: 25,
+    timerSeconds: 45,
   });
 
   emitState(room);
@@ -317,18 +334,15 @@ const startAnswering = (room: Room): void => {
 
 const applyScores = (room: Room): void => {
   if (!room.currentRound) return;
-  const correctIds = [...new Set(room.currentRound.selectedCorrectPlayerIds)];
-  const funnyIds = [...new Set(room.currentRound.selectedFunnyPlayerIds)];
-  const ratio = correctIds.length / activePlayerCount(room);
-  const bonus = ratio < 0.3 ? 100 : 0;
+  Object.entries(room.currentRound.answerScores).forEach(
+    ([playerId, score]) => {
+      const player = room.players[playerId];
+      if (!player) return;
+      player.score += reviewScoreToPoints(score);
+    },
+  );
 
-  correctIds.forEach((playerId) => {
-    const player = room.players[playerId];
-    if (!player) return;
-    player.score += 100 + bonus;
-  });
-
-  funnyIds.forEach((playerId) => {
+  [...new Set(room.currentRound.selectedFunnyPlayerIds)].forEach((playerId) => {
     const player = room.players[playerId];
     if (!player) return;
     player.score += FUNNY_ANSWER_BONUS;
@@ -339,7 +353,6 @@ const applyScores = (room: Room): void => {
       name: p.name,
       score: p.score,
     })),
-    bonusApplied: bonus === 100,
   });
 };
 
@@ -516,7 +529,7 @@ io.on("connection", (socket) => {
       room.currentRound.selectedQuestion = selected;
       room.usedQuestionIds.add(selected.id);
       room.currentRound.answers = {};
-      room.currentRound.selectedCorrectPlayerIds = [];
+      room.currentRound.answerScores = {};
       room.currentRound.selectedFunnyPlayerIds = [];
       room.currentRound.selectedBeerPlayerIds = [];
 
@@ -602,8 +615,32 @@ io.on("connection", (socket) => {
       }
 
       const answerPlayerIds = Object.keys(room.currentRound.answers);
-      room.currentRound.selectedCorrectPlayerIds =
-        payload.correctPlayerIds.filter((id) => answerPlayerIds.includes(id));
+      const hasAllScores = answerPlayerIds.every(
+        (playerId) => payload.answerScores[playerId] !== undefined,
+      );
+      if (!hasAllScores) {
+        cb?.({ ok: false, error: "Each answer needs a score." });
+        return;
+      }
+
+      const answerScores: Record<string, number> = {};
+      for (const playerId of answerPlayerIds) {
+        const rawScore = payload.answerScores[playerId];
+        if (typeof rawScore !== "number" || Number.isNaN(rawScore)) {
+          cb?.({ ok: false, error: "Invalid score value." });
+          return;
+        }
+
+        const score = sanitizeReviewScore(rawScore);
+        if (score !== rawScore) {
+          cb?.({ ok: false, error: "Scores must be between -3 and 3." });
+          return;
+        }
+
+        answerScores[playerId] = score;
+      }
+
+      room.currentRound.answerScores = answerScores;
       room.currentRound.selectedFunnyPlayerIds = (
         payload.funnyPlayerIds || []
       ).filter((id) => answerPlayerIds.includes(id));

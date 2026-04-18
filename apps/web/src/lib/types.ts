@@ -21,7 +21,8 @@ export interface DisplayAnswer {
   playerId: string;
   playerName: string;
   answer: string;
-  isCorrect: boolean;
+  score: number;
+  pointsAwarded: number;
   isFunny: boolean;
   isBeer: boolean;
 }
@@ -51,6 +52,7 @@ export interface GameState {
   judgingAnswers?: Array<{
     playerId: string;
     answer: string;
+    score?: number;
     isFunny: boolean;
     isBeer: boolean;
   }>;
